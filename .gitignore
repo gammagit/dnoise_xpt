@@ -1,2 +1,2 @@
-# Vim Session and tags files
-*.vim
+# Ignore test results
+res/*test*.mat

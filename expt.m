@@ -154,9 +154,11 @@ function out_dev = get_keyboard_id()
     if device==0 % if device wasn't found, try to look for other keyboards
         all_ixs = [];
         name_ixs = [];
-        deviceString='eyboard';%% Match any [Ky]eyboard
+        deviceString1='eyboard';%% Match any [Ky]eyboard
+        deviceString2='Logitech';%% Match any [Ky]eyboard
         for i=1:length(name) %for each possible device
-            if strfind(name{i},deviceString) % Note 'strfind': match substrings
+            if (~isempty(strfind(name{i},deviceString1)) ||...
+                ~isempty(strfind(name{i},deviceString2)))
                 all_ixs = [all_ixs id(i)];
                 name_ixs = [name_ixs i];
             end

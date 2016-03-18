@@ -18,12 +18,15 @@ function expt(arg_type, arg_subname)
 %        oldgfxlut = linearize_monitor(wip);
 
         disp_intro(wip, wrp, new_pars);
-        [dtseq, decseq, cicseq, nlseq] = block(wip, wrp, key_id, new_pars);
 
-        nlseq
-        decseq
-        cicseq
-        dtseq
+        mycon = calibrate(wip, wrp, key_id, pars, 1)
+
+%        [dtseq, decseq, cicseq, nlseq] = block(wip, wrp, key_id, new_pars);
+
+%        nlseq
+%        decseq
+%        cicseq
+%        dtseq
 
         %%% Save results
         resfile_mat = ['res/', datestr(subid, 'ddmmm-HHMM'), '_', arg_subname, '.mat'];
@@ -230,7 +233,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars)
                         BlackIndex(arg_wip),...
                         60, 0, 0, 1.5);
     DrawFormattedText(arg_wip,...
-                        'Press "n" to start',...
+                        'Press "Space" to start',...
                         'center',...
                         cy*2 - 50,...
                         BlackIndex(arg_wip),...
@@ -238,7 +241,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars)
     Screen('Flip', arg_wip);
     WaitSecs('YieldSecs', 1);
     [KeyIsDown, endrt, KeyCode]=KbCheck;
-    while(KeyCode(KbName('n')) ~= 1)
+    while(KeyCode(KbName('space')) ~= 1)
         [KeyIsDown, endrt, KeyCode]=KbCheck;
     end
 

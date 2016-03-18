@@ -63,7 +63,7 @@ function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_key
         [pressed, firstPress] = KbQueueCheck(arg_keyid);
         pressedCode = find(firstPress);
         KbQueueFlush(arg_keyid);
-        WaitSecs('YieldSecs', 0.05);
+        WaitSecs('YieldSecs', 0.01);
     end
 
     KbQueueStop(arg_keyid);

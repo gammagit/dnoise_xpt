@@ -4,14 +4,16 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-020|	Session.vim	/^normal! 020|$/;"	m
+023|	Session.vim	/^normal! 023|$/;"	m
 SessionLoad	Session.vim	/^let SessionLoad = 1$/;"	v
 add_border	create_template.m	/^function out_T = add_border(arg_T, arg_winsize, arg_tsize)$/;"	f
 add_noise	add_noise.m	/^function out_Stim = add_noise(arg_Stim, arg_mu, arg_sd)$/;"	f
 block	block.m	/^function [out_rtseq out_decseq out_cicseq out_nlseq] = block(arg_wip, arg_wrp, arg_keyid, arg_pars)$/;"	f
+calibrate	calibrate.m	/^function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars, arg_xid, arg_pvals)$/;"	f
 convert_lum	create_blob.m	/^function out_Blob = convert_lum(arg_Blob, arg_lumbk, arg_lumax)$/;"	f
 create_blob	create_blob.m	/^function out_Blob = create_blob(arg_winsize, arg_tsize, arg_thick, arg_con,...$/;"	f
 create_template	create_template.m	/^function out_T = create_template(arg_winsize, arg_tsize, arg_thick, arg_con,...$/;"	f
+disp_intro	expt.m	/^function disp_intro(arg_wip, arg_wrp, arg_pars)$/;"	f
 disp_time_n_rwd	iti.m	/^function disp_time_n_rwd(arg_wip,...$/;"	f
 draw_fixation	draw_fixation.m	/^function draw_fixation(wip, wrp, col)$/;"	f
 expt	expt.m	/^function expt(arg_type, arg_subname)$/;"	f
@@ -28,7 +30,7 @@ plot_rwd_anim	iti.m	/^function plot_rwd_anim(arg_wip, arg_wrp, ttime, dtime, ii,
 reconfig_pars	expt.m	/^function out_pars = reconfig_pars(arg_type, arg_pars)$/;"	f
 rescale_template	create_template.m	/^function out_T = rescale_template(arg_T, arg_con)$/;"	f
 reset_monitor	expt.m	/^function reset_monitor(wip, oldgfxlut)$/;"	f
-s:l	Session.vim	/^let s:l = 6 - ((5 * winheight(0) + 16) \/ 33)$/;"	v
+s:l	Session.vim	/^let s:l = 25 - ((24 * winheight(0) + 16) \/ 33)$/;"	v
 s:so_save	Session.vim	/^let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0$/;"	v
 s:sx	Session.vim	/^let s:sx = expand("<sfile>:p:r")."x.vim"$/;"	v
 s:wipebuf	Session.vim	/^  let s:wipebuf = bufnr('%')$/;"	v

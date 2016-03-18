@@ -4,14 +4,16 @@ syntax keyword Tag !_TAG_PROGRAM_AUTHOR
 syntax keyword Tag !_TAG_PROGRAM_NAME
 syntax keyword Tag !_TAG_PROGRAM_URL
 syntax keyword Tag !_TAG_PROGRAM_VERSION
-syntax keyword Tag 020|
+syntax keyword Tag 023|
 syntax keyword Tag SessionLoad
 syntax keyword Tag add_border
 syntax keyword Tag add_noise
 syntax keyword Tag block
+syntax keyword Tag calibrate
 syntax keyword Tag convert_lum
 syntax keyword Tag create_blob
 syntax keyword Tag create_template
+syntax keyword Tag disp_intro
 syntax keyword Tag disp_time_n_rwd
 syntax keyword Tag draw_fixation
 syntax keyword Tag expt

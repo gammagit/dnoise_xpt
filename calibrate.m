@@ -34,7 +34,8 @@ function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
 
     for (ii = 1:arg_pars.nct)
         %%% Sample the estimate from posterior (usually just mean)
-        est_ii = QuestQuantile(weib)
+%        est_ii = QuestQuantile(weib)
+        est_ii = QuestMean(weib)
 
         %%% Ensure estimates are within range
         if (est_ii < min_est)
@@ -70,8 +71,12 @@ function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         WaitSecs('YieldSecs', 0.5);
     end
 
-    weib = QuestRecompute(weib, 1); % compute the psychometric function
-    QuestMean(weib)
+    est_final = QuestMean(weib)
+    est_sd_final = QuestSd(weib)
+    newweib = QuestCreate(est_final, est_sd_final, qthresh, qbeta, qdelta, qgamma)
+    newweib = QuestRecompute(newweib, 1); % compute the psychometric function
+%    QuestBetaAnalysis(newweib)
+    newweib
 %    xThreshold=interp1(weib.p2, weib.x2, weib.pThreshold);
     out_xval = weib.xThreshold; % intensity by interpolating pThreshold
 end

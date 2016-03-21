@@ -1,11 +1,11 @@
-function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
+function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     arg_xid, arg_pvals)
 %%% CALIBRATE runs a sequence of 2AFC trials and uses the responses to generate
 %%% a psychometric function for the participant. It then computes the values
 %%% of the desired intensity variable at the given probability values.
 %%%
-%%% out_xval = float containing the intensity value at the desired probability
-%%%     of response.
+%%% out_xvals = vector of float containing the intensity value at the desired
+%%%     probability of response.
 %%%
 %%% arg_wip = Screen windowPtr (see Psychtoolbox)
 %%% arg_wrp = Screen rect (see Psychtoolbox)
@@ -20,11 +20,13 @@ function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         min_est = 0; % defines range for contrast
         max_est = 3; % max contrast
         est_sd = 2; % a large SD as prior
+        xstring = 'contrast'
     else
         est = arg_pars.sd_mu.init; % Estimated variable init to sd_mu.init
         min_est = 0; % defines range for noise
         max_est = 0.2; % max mean noise
         est_sd = 0.1; % a large SD as prior
+        xstring = 'noise'
     end
 
     %%% Create structure for Weibull psychometric function using Quest
@@ -32,10 +34,13 @@ function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     qbeta=3.5; qdelta=0.01; qgamma=0.5; % for 2AFC
     weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
 
+    est_vec = [];
+    est_sd_vec = [];
     for (ii = 1:arg_pars.nct)
         %%% Sample the estimate from posterior (usually just mean)
-%        est_ii = QuestQuantile(weib)
-        est_ii = QuestMean(weib)
+        est_ii = QuestQuantile(weib);
+%        est_ii = QuestMean(weib);
+%        est_sd_ii = QuestMean(weib);
 
         %%% Ensure estimates are within range
         if (est_ii < min_est)
@@ -43,6 +48,8 @@ function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         elseif (est_ii > max_est)
             est_ii = max_est;
         end
+        est_vec = [est_vec est_ii];
+%        est_sd_vec = [est_sd_vec est_sd_ii];
 
         %%% Change contrast or noise based on Quest sample
         if (arg_xid == 1)
@@ -72,13 +79,31 @@ function out_xval = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     end
 
     est_final = QuestMean(weib)
-    est_sd_final = QuestSd(weib)
-    newweib = QuestCreate(est_final, est_sd_final, qthresh, qbeta, qdelta, qgamma)
-    newweib = QuestRecompute(newweib, 1); % compute the psychometric function
+%    est_sd_final = QuestSd(weib)
+    est_vec = [est_vec est_final];
+%    est_sd_vec = [est_sd_vec est_sd_final];
+
+    allx = min_est:0.01:max_est;
+    pf=qdelta * qgamma + (1-qdelta) *...
+        (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_final))));
+    uniq=find(diff(pf));
+    out_xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
+
+    figure
+    subplot(2,1,1)
+    plot(1:length(est_vec), est_vec, '-ok', 'MarkerSize', 2);
+    xlabel('trial')
+    ylabel(xstring)
+    subplot(2,1,2)
+    plot(allx(uniq), pf(uniq), '-.b', out_xvals, arg_pars.pthresh, 'or');
+    xlabel(xstring);
+    ylabel('p (resp=1)')
+%    newweib = QuestCreate(est_final, est_sd_final, qthresh, qbeta, qdelta, qgamma)
+%    newweib = QuestRecompute(newweib, 1); % compute the psychometric function
 %    QuestBetaAnalysis(newweib)
-    newweib
+%    newweib
 %    xThreshold=interp1(weib.p2, weib.x2, weib.pThreshold);
-    out_xval = weib.xThreshold; % intensity by interpolating pThreshold
+%    out_xval = weib.xThreshold; % intensity by interpolating pThreshold
 end
 
 

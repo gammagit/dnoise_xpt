@@ -98,7 +98,7 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
 
     allx = min_est:0.01:max_est;
     pf=qdelta * qgamma + (1-qdelta) *...
-        (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_final))));
+        (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_final1))));
     uniq=find(diff(pf));
     out_xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
 

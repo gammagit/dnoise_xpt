@@ -32,15 +32,22 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     %%% Create structure for Weibull psychometric function using Quest
     qthresh = arg_pars.pthresh(1);
     qbeta=3.5; qdelta=0.01; qgamma=0.5; % for 2AFC
-    weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
+    weib1 = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
+    weib1.pThreshold = 0.60;
+    weib2 = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
+    weib2.pThreshold = 0.90;
 
-    est_vec = [];
+    est_vec1 = [];
+    est_vec2 = [];
     est_sd_vec = [];
     for (ii = 1:arg_pars.nct)
         %%% Sample the estimate from posterior (usually just mean)
-        est_ii = QuestQuantile(weib);
+        if (mod(ii,2) == 0)
+            est_ii = QuestQuantile(weib1);
+        else
+            est_ii = QuestQuantile(weib2);
+        end
 %        est_ii = QuestMean(weib);
-%        est_sd_ii = QuestMean(weib);
 
         %%% Ensure estimates are within range
         if (est_ii < min_est)
@@ -48,7 +55,8 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         elseif (est_ii > max_est)
             est_ii = max_est;
         end
-        est_vec = [est_vec est_ii];
+        est_vec1 = [est_vec1 est_ii];
+        est_vec2 = [est_vec2 est_ii];
 %        est_sd_vec = [est_sd_vec est_sd_ii];
 
         %%% Change contrast or noise based on Quest sample
@@ -72,15 +80,20 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         else
             resp = 0;
         end
-        weib = QuestUpdate(weib, est_ii, resp);
+        if (mod(ii,2) == 0)
+            weib1 = QuestUpdate(weib1, est_ii, resp);
+        else
+            weib2 = QuestUpdate(weib2, est_ii, resp);
+        end
 
         %%% Wait for ITI
         WaitSecs('YieldSecs', 0.5);
     end
 
-    est_final = QuestMean(weib)
+    est_final1 = QuestMean(weib1)
+    est_final2 = QuestMean(weib2)
 %    est_sd_final = QuestSd(weib)
-    est_vec = [est_vec est_final];
+    est_vec1 = [est_vec1 est_final1];
 %    est_sd_vec = [est_sd_vec est_sd_final];
 
     allx = min_est:0.01:max_est;

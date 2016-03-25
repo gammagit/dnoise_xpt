@@ -28,11 +28,11 @@ function out_pars = init_params()
     out_pars.tblock = 10; % duration of each block
 
     %%% Calibration related parameters
-    out_pars.nct = 20; % number of trials to calibrate
+    out_pars.nct = 50; % number of trials to calibrate
     out_pars.con.init = 1; % initial value of contrast for Quest
     out_pars.con.calib = 0.70; % contrast if noise is being calibrated
     out_pars.sd_mu.init = 0.10; % initial value of noise for Quest
     out_pars.sd_mu.calib = 0.10; % noise if contrast is being calibrated
-    out_pars.pthresh = [0.60 0.75 0.90]; % psychometric thresholds for testing
+    out_pars.pthresh = [0.75 0.95]; % psychometric thresholds for testing
     out_pars.tcalib = 1; % duration of calibration trial
 end

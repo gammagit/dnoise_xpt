@@ -33,9 +33,9 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     qthresh = arg_pars.pthresh(1);
     qbeta=3.5; qdelta=0.01; qgamma=0.5; % for 2AFC
     weib1 = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
-    weib1.pThreshold = 0.60;
+%    weib.pThreshold = 0.75;
     weib2 = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
-    weib2.pThreshold = 0.90;
+%    weib2.pThreshold = 0.99;
 
     est_vec1 = [];
     est_vec2 = [];
@@ -43,9 +43,11 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     for (ii = 1:arg_pars.nct)
         %%% Sample the estimate from posterior (usually just mean)
         if (mod(ii,2) == 0)
-            est_ii = QuestQuantile(weib1);
+            est_ii = QuestQuantile(weib1, arg_pars.pthresh(1));
+            est_vec1 = [est_vec1 est_ii];
         else
-            est_ii = QuestQuantile(weib2);
+            est_ii = QuestQuantile(weib2, arg_pars.pthresh(2));
+            est_vec2 = [est_vec2 est_ii];
         end
 %        est_ii = QuestMean(weib);
 
@@ -55,8 +57,6 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         elseif (est_ii > max_est)
             est_ii = max_est;
         end
-        est_vec1 = [est_vec1 est_ii];
-        est_vec2 = [est_vec2 est_ii];
 %        est_sd_vec = [est_sd_vec est_sd_ii];
 
         %%% Change contrast or noise based on Quest sample
@@ -94,21 +94,28 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     est_final2 = QuestMean(weib2)
 %    est_sd_final = QuestSd(weib)
     est_vec1 = [est_vec1 est_final1];
+    est_vec2 = [est_vec2 est_final2];
 %    est_sd_vec = [est_sd_vec est_sd_final];
 
     allx = min_est:0.01:max_est;
-    pf=qdelta * qgamma + (1-qdelta) *...
+    pf1=qdelta * qgamma + (1-qdelta) *...
         (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_final1))));
-    uniq=find(diff(pf));
-    out_xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
+    uniq=find(diff(pf1));
+    out_xvals = interp1(pf1(uniq), allx(uniq), arg_pars.pthresh);
+    pf2=qdelta * qgamma + (1-qdelta) *...
+        (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_final2))));
+    uniq2=find(diff(pf2));
+    out_xvals2 = interp1(pf2(uniq2), allx(uniq2), arg_pars.pthresh);
 
     figure
     subplot(2,1,1)
-    plot(1:length(est_vec), est_vec, '-ok', 'MarkerSize', 2);
+    plot(1:length(est_vec1), est_vec1, '-ok', 1:length(est_vec2), est_vec2, '-or');
     xlabel('trial')
     ylabel(xstring)
     subplot(2,1,2)
-    plot(allx(uniq), pf(uniq), '-.b', out_xvals, arg_pars.pthresh, 'or');
+    plot(allx(uniq), pf1(uniq), '-.b', out_xvals, arg_pars.pthresh, 'or',...
+         allx(uniq2), pf2(uniq2), '-.r', out_xvals2, arg_pars.pthresh, 'or',...
+         'MarkerSize', 7);
     xlabel(xstring);
     ylabel('p (resp=1)')
 %    newweib = QuestCreate(est_final, est_sd_final, qthresh, qbeta, qdelta, qgamma)

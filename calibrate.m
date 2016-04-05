@@ -34,9 +34,13 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     qbeta=3; qdelta=0.01; qgamma=0.5; % for 2AFC
     weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
 
+    %%% Create matrices of intensities displayed and responses given
     nints = numel(arg_pars.pthresh); % number of intensity thresholds to test
     intsMat = zeros(nints, ceil(arg_pars.nct/nints)); % record of intensities
-    allx = -max_est:0.01:max_est; % larger than [min-max]: avoids NaNs in interp
+    respMat = -1 * ones(nints, ceil(arg_pars.nct/nints)); % record of responses
+
+    %%% Create a vector of domain of intensity (for interpolation)
+    allx = linspace(-max_est, max_est, 1000); % Note: -max avoids NaNs in interp
 
     %%% Iterate of nct trials and update estimate at each step
     for (ii = 0:arg_pars.nct-1)
@@ -82,17 +86,23 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
             resp = 0;
         end
         weib = QuestUpdate(weib, ints_ii, resp);
+        respMat(test_ints, floor(ii/nints)+1) = resp;
 
         %%% Wait for ITI
         WaitSecs('YieldSecs', 0.5);
     end
 
 
-    %%% Construct final psychometric fn based on final estimate
+    %%% Construct final psychometric fn based on staircase method (Quest)
     est_mean = QuestMean(weib); % final estimate
     est_beta = QuestBetaAnalysis(weib);
-    pf=qdelta * qgamma + (1-qdelta) *...
-        (1 - (1-qgamma) * exp(-10.^(est_beta * (allx-est_mean))));
+    pf_quest = qdelta * qgamma + (1-qdelta) *...
+               (1 - (1-qgamma) * exp(-10.^(est_beta * (allx-est_mean))));
+
+    %%% Construct final psychometric fn based on ML est
+    pf_ml = fit_pfml(allx, intsMat(:), respMat(:));
+
+
     uniq=find(diff(pf));
     out_xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
 

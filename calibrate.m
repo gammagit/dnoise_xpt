@@ -18,15 +18,15 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     if (arg_xid == 1)
         est = arg_pars.con.init; % Estimated variable init to con.init
         min_est = 0; % defines range for contrast
-        max_est = 5; % max contrast
-        est_sd = 2; % a large SD as prior
-        xstring = 'contrast threshold estimates'
+        max_est = 3; % max contrast
+        est_sd = 1; % a large SD as prior
+        xstring = 'contrast threshold estimates';
     else
         est = arg_pars.sd_mu.init; % Estimated variable init to sd_mu.init
         min_est = 0; % defines range for noise
         max_est = 0.2; % max mean noise
         est_sd = 0.1; % a large SD as prior
-        xstring = 'noise threshold estimates'
+        xstring = 'noise threshold estimates';
     end
 
     %%% Create structure for Weibull psychometric function using Quest
@@ -36,17 +36,29 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
 
     %%% Create matrices of intensities displayed and responses given
     nints = numel(arg_pars.pthresh); % number of intensity thresholds to test
-    intsMat = zeros(nints, ceil(arg_pars.nct/nints)); % record of intensities
-    respMat = -1 * ones(nints, ceil(arg_pars.nct/nints)); % record of responses
+    for (ii = 1:nints)
+        ints_vec{ii} = [];
+        resp_vec{ii} = [];
+    end
+%    intsMat = zeros(nints, ceil(arg_pars.nct/nints)); % record of intensities
+%    counters_ints = zeros(1,nints); % counters for each row of intsMat
+%    respMat = -1 * ones(nints, ceil(arg_pars.nct/nints)); % record of responses
 
     %%% Create a vector of domain of intensity (for interpolation)
-    allx = linspace(-max_est, max_est, 1000); % Note: -max avoids NaNs in interp
+%    allx = linspace(-max_est, max_est, 1000); % Note: -max avoids NaNs in interp
+    allx = linspace(min_est, max_est, 1000);
 
     %%% Iterate of nct trials and update estimate at each step
     for (ii = 0:arg_pars.nct-1)
         %%% Sample the estimate from posterior (usually just mean)
-        test_ints = mod(ii, nints) + 1; % select one of nints thresholds
-        est_ii = QuestMean(weib); % using mean (not quantile) to get psych fn
+%        test_ints = mod(ii, nints) + 1; % cyclically select one threshold
+        test_ints = ceil(rand/(1/nints)); % randomly select one threshold
+        if (test_ints == 0) % if rand returns 0, correct it
+            test_ints = 1;
+        end
+%        counters_ints(test_ints) = counters_ints(test_ints) + 1;
+%        est_ii = QuestMean(weib); % using mean (not quantile) to get psych fn
+        est_ii = QuestQuantile(weib, arg_pars.pthresh(test_ints));
 
         %%% Ensure estimates are within range
         if (est_ii < min_est)
@@ -56,13 +68,16 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         end
 
         %%% Construct psychometric fn and interpolate intensities from pthresh
-        pf=qdelta * qgamma + (1-qdelta) *...
-            (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_ii)))); % Weibull pf
-        uniq=find(diff(pf));
-        xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
-        ints_ii = xvals(test_ints); % select one of nints
+%        pf=qdelta * qgamma + (1-qdelta) *...
+%            (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_ii)))); % Weibull pf
+%        pf = QuestP(weib, allx-est_ii);
+%        uniq=find(diff(pf));
+%        xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
+%        ints_ii = xvals(test_ints); % select one of nints
+        ints_ii = est_ii; % select one of nints
 
-        intsMat(test_ints, floor(ii/nints)+1) = ints_ii;
+%        intsMat(test_ints, counters_ints(test_ints)) = ints_ii;
+        ints_vec{test_ints} = [ints_vec{test_ints}, ints_ii];
 
         %%% Change contrast or noise to display based on Quest sample
         if (arg_xid == 1)
@@ -81,12 +96,13 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
 
         %%% Update estimate using Quest
         if (dec == stim_id)
-            resp = 1;
+            resp_ii = 1;
         else
-            resp = 0;
+            resp_ii = 0;
         end
-        weib = QuestUpdate(weib, ints_ii, resp);
-        respMat(test_ints, floor(ii/nints)+1) = resp;
+        weib = QuestUpdate(weib, ints_ii, resp_ii);
+%        respMat(test_ints, floor(ii/nints)+1) = resp_ii;
+        resp_vec{test_ints} = [resp_vec{test_ints} resp_ii];
 
         %%% Wait for ITI
         WaitSecs('YieldSecs', 0.5);
@@ -96,26 +112,46 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     %%% Construct final psychometric fn based on staircase method (Quest)
     est_mean = QuestMean(weib); % final estimate
     est_beta = QuestBetaAnalysis(weib);
-    pf_quest = qdelta * qgamma + (1-qdelta) *...
-               (1 - (1-qgamma) * exp(-10.^(est_beta * (allx-est_mean))));
+%    pf_quest = qdelta * qgamma + (1-qdelta) *...
+%               (1 - (1-qgamma) * exp(-10.^(est_beta * (allx-est_mean))));
+    pf_quest = QuestP(weib, allx-est_mean);
+
+    %%% Aggregate all intensity and response vectors
+    all_ints = [];
+    all_resps = [];
+    for (ii = 1:nints)
+        all_ints = [all_ints ints_vec{ii}];
+        all_resps = [all_resps resp_vec{ii}];
+    end
 
     %%% Construct final psychometric fn based on ML est
-    pf_ml = fit_pfml(allx, intsMat(:), respMat(:));
+    pf_ml = fit_mlepf(allx, all_ints, all_resps);
 
-
-    uniq=find(diff(pf));
-    out_xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
+    uniq=find(diff(pf_quest));
+    quest_xvals = interp1(pf_quest(uniq), allx(uniq), arg_pars.pthresh);
+    uniq=find(diff(pf_ml));
+    out_xvals = interp1(pf_ml(uniq), allx(uniq), arg_pars.pthresh);
 
     figure
     subplot(2,1,1)
-    plot(intsMat');
+%    plot(intsMat');
+    colorMat = [1 0 0; 0 0 1; 0 0 0; 0 1 0; 1 1 0; 0 1 1; 1 0 1];
+    hold on
+    for (ii = 1:nints)
+        plot(1:numel(ints_vec{ii}), ints_vec{ii}, 'Color', colorMat(ii,:));
+    end
+    hold off
     ylim([-0.2, 1.2])
     xlabel('trial')
     ylabel(xstring)
     subplot(2,1,2)
-    plot(allx(uniq), pf(uniq), '-.b', out_xvals, arg_pars.pthresh, 'or',...
+    hold on
+    plot(allx(uniq), pf_quest(uniq), '-.b', out_xvals, arg_pars.pthresh, 'ob',...
          'MarkerSize', 7);
-    xlim([0, 1])
+    plot(allx(uniq), pf_ml(uniq), '-.r', out_xvals, arg_pars.pthresh, 'or',...
+         'MarkerSize', 7);
+    hold off
+    xlim([0, 1.5])
     xlabel(xstring);
     ylabel('p (resp=1)')
 end

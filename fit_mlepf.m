@@ -16,11 +16,41 @@ function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
     data.respvec = arg_respvec;
     data.sigvec = arg_sigvec;
 
-    init_pars = [0.05 1 3]; %initial lapse, scale & shape parameters
+    %%% Set initial values and options for optimization
+    init_pars = [0.05, 1, 3]; %initial lapse, scale & shape parameters
     options=optimset('Display','off','MaxIter',10000,'TolX',10^-30,'TolFun',10^-30);
 
-    fit_pars = fminsearch('nllpf', init_pars, options, data);
+    %%% Find the optimal (MLE) parameters for given data
+    opt_pars = fminsearch(@nllpf, init_pars, options, data)
+
+    %%% Use optimal parameters to get psychometric function on domain
+    out_pf = psychf(opt_pars, arg_domvec);
 end
+
+
+function out_ll = nllpf(arg_pars, arg_data)
+%%% LLPF computes the negative log-likelihood of set of parameters of the
+%%% psychometric function, given a set of signals and responses
+%%%     Prob correct responses = pf(pars, data)
+%%%     Prob incorrect responses = 1 - pf(pars, data)
+%%%     Therefore, if ri=1 for correct responses and ri=0 for incorrect, then
+%%%     lik = prod(prob_correct.^ri * prob_incorrect.^(1-ri))
+%%%     lik = prod( pf.^ri * (1-pf).^(1-ri), and
+%%%     loglik = sum(ri .* log(pf) + (1-ri) .* log(1-pf))
+%%%
+%%% out_ll = float containing the log-likelihood
+%%%
+%%% arg_pars = structure containing the parameters of the psychometric fn
+%%% arg_data = structure containing set of signals (arg_data.sigvec) and
+%%%     responses (arg_data.respvec)
+
+    responses = arg_data.respvec;
+    signals = arg_data.sigvec;
+
+    out_ll = -sum(responses .* log(psychf(arg_pars, signals)) +...
+                 ((1 - responses) .* log(1 - psychf(arg_pars, signals))));
+end
+
 
 function out_y = psychf(arg_pars, arg_x)
 %%% PSYCHF computes the values of the psychometric function at given vector of
@@ -48,29 +78,5 @@ function out_y = psychf(arg_pars, arg_x)
     shape = arg_pars(3);
     
     out_y = lbound + ((1 - lbound - lapse) .*...
-                      (1 - exp((-arg_x./scale) .^ shape)));
-end
-
-
-function out_ll = nllpf(arg_pars, arg_data)
-%%% LLPF computes the negative log-likelihood of set of parameters of the
-%%% psychometric function, given a set of signals and responses
-%%%     Prob correct responses = pf(pars, data)
-%%%     Prob incorrect responses = 1 - pf(pars, data)
-%%%     Therefore, if ri=1 for correct responses and ri=0 for incorrect, then
-%%%     lik = prod(prob_correct.^ri * prob_incorrect.^(1-ri))
-%%%     lik = prod( pf.^ri * (1-pf).^(1-ri), and
-%%%     loglik = sum(ri .* pf + (1-ri).*(1-pf))
-%%%
-%%% out_ll = float containing the log-likelihood
-%%%
-%%% arg_pars = structure containing the parameters of the psychometric fn
-%%% arg_data = structure containing set of signals (arg_data.sigvec) and
-%%%     responses (arg_data.respvec)
-
-    responses = arg_data.respvec;
-    signals = arg_data.sigvec;
-
-    out_ll = -sum(responses .* log(psychf(arg_pars, signals)) +...
-                 (1 - responses) .* (1 - log(psychf(arg_pars, signals))));
+                      (1 - exp(-((arg_x./scale) .^ shape))));
 end

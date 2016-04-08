@@ -21,7 +21,17 @@ function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
     options=optimset('Display','off','MaxIter',10000,'TolX',10^-30,'TolFun',10^-30);
 
     %%% Find the optimal (MLE) parameters for given data
-    opt_pars = fminsearch(@nllpf, init_pars, options, data)
+%    opt_pars = fminsearch(@nllpf, init_pars, options, data)
+
+    %%% Define constraint on parameters for maximization
+    %%% Primarily for lapse parameter
+    A = []; Aeq = []; b = []; beq = []; nonlcon = []; % don't use these
+    lb_pars = [0, 0.01, 0.01]; % low-bound
+    ub_pars = [0.2, 10, 10]; % upper-bound
+%    opt_pars = fmincon(@nllpf, init_pars, A, b, Aeq, beq, lb_pars, ub_pars,...
+%        nonlcon, options, data)
+    opt_pars = fminsearchbnd(@nllpf, init_pars, lb_pars, ub_pars,...
+        options, data)
 
     %%% Use optimal parameters to get psychometric function on domain
     out_pf = psychf(opt_pars, arg_domvec);

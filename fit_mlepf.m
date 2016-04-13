@@ -32,6 +32,9 @@ function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
 %        nonlcon, options, data)
     opt_pars = fminsearchbnd(@nllpf, init_pars, lb_pars, ub_pars,...
         options, data)
+    if (opt_pars(1) > 0.1)
+        error('Subject lapse errors too large');
+    end
 
     %%% Use optimal parameters to get psychometric function on domain
     out_pf = psychf(opt_pars, arg_domvec);

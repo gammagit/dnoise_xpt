@@ -41,15 +41,25 @@ function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_key
 
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
+    oldtex = []; % a pointer to old textures (to save memory)
     while(~(any(pressedCode == KbName('Left')) ||...
             any(pressedCode == KbName('Right'))))
         %%% Sample noise from noise distribution
         mu = mu_trial;
         sd = sd_mu_trial + (sd_sd_trial * randn); % sample N(sd_mu,sd_sd)
 
+        %%% Close previous texture pointers
+%        if (~isempty(oldtex))
+%            Screen('Close', oldtex);
+%        end
+        if (exist('stimtex'))
+            Screen('Close', stimtex);
+        end
+
         %%% Generate texture for stim
         stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, arg_tid,...
             thick, con, mu, sd, lumbk, lumax);
+%        oldtex = stimtex;
 
         % Display stimuli
         tzero_stim = GetSecs;

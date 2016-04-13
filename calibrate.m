@@ -15,14 +15,13 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
 %%%     (1=contrast; 2=external noise).
 
     use_quantile = true; % Use QuestQuantile or QuestP
-    eps_noise = 0.1; % "e-greedy" noisy staircase method
 
     %%% Set initial values of estimates based on variable being calibrated
     if (arg_xid == 1)
         est = arg_pars.con.init; % Estimated variable init to con.init
         min_est = 0; % defines range for contrast
         max_est = 3; % max contrast
-        est_sd = 1; % a large SD as prior
+        est_sd = 0.3; % a large SD as prior
         xstring = 'contrast threshold estimates';
     else
         est = arg_pars.sd_mu.init; % Estimated variable init to sd_mu.init
@@ -32,23 +31,19 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         xstring = 'noise threshold estimates';
     end
 
-    %%% Create structure for Weibull psychometric function using Quest
-    qthresh = arg_pars.pthresh(3);
-    qbeta=3; qdelta=0.01; qgamma=0.5; % for 2AFC
-    weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
-
     %%% Create matrices of intensities displayed and responses given
     nints = numel(arg_pars.pthresh); % number of intensity thresholds to test
     for (ii = 1:nints)
         ints_vec{ii} = [];
         resp_vec{ii} = [];
     end
-%    intsMat = zeros(nints, ceil(arg_pars.nct/nints)); % record of intensities
-%    counters_ints = zeros(1,nints); % counters for each row of intsMat
-%    respMat = -1 * ones(nints, ceil(arg_pars.nct/nints)); % record of responses
+
+    %%% Create structure for Weibull psychometric function using Quest
+    qthresh = arg_pars.pthresh(2);
+    qbeta=3; qdelta=0.10; qgamma=0.5; % for 2AFC
+    weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
 
     %%% Create a vector of domain of intensity (for interpolation)
-%    allx = linspace(-max_est, max_est, 1000); % Note: -max avoids NaNs in interp
     allx = linspace(min_est, max_est, 1000);
     ints_perms = randperm(nints); % first permutation of intensities
 
@@ -61,12 +56,6 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         else
             ints_perms = ints_perms(2:end); % used first element, so remove
         end
-%        test_ints = ceil(rand/(1/nints)); % randomly select one threshold
-%        if (test_ints == 0) % if rand returns 0, correct it
-%            test_ints = 1;
-%        end
-%        counters_ints(test_ints) = counters_ints(test_ints) + 1;
-%        est_ii = QuestMean(weib); % using mean (not quantile) to get psych fn
         if (use_quantile)
             est_ii = QuestQuantile(weib, arg_pars.pthresh(test_ints));
         else
@@ -77,12 +66,6 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
                 arg_pars.pthresh(test_ints));
         end
 
-        %%% e-greedy: sample est_ii from a [0 0.5] w.p. eps_noise
-        %%% Gives some low samples, in case the first few resps are wrong
-        if (rand < eps_noise)
-            est_ii = 0 + 0.5 * rand
-        end
-
         %%% Ensure estimates are within range
         if (est_ii < min_est)
             est_ii = min_est; % 
@@ -90,16 +73,8 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
             est_ii = max_est;
         end
 
-        %%% Construct psychometric fn and interpolate intensities from pthresh
-%        pf=qdelta * qgamma + (1-qdelta) *...
-%            (1 - (1-qgamma) * exp(-10.^(qbeta * (allx-est_ii)))); % Weibull pf
-%        pf = QuestP(weib, allx-est_ii);
-%        uniq=find(diff(pf));
-%        xvals = interp1(pf(uniq), allx(uniq), arg_pars.pthresh);
-%        ints_ii = xvals(test_ints); % select one of nints
         ints_ii = est_ii; % select one of nints
 
-%        intsMat(test_ints, counters_ints(test_ints)) = ints_ii;
         ints_vec{test_ints} = [ints_vec{test_ints}, ints_ii];
 
         %%% Change contrast or noise to display based on Quest sample
@@ -135,8 +110,6 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     %%% Construct final psychometric fn based on staircase method (Quest)
     est_mean = QuestMean(weib); % final estimate
     est_beta = QuestBetaAnalysis(weib);
-%    pf_quest = qdelta * qgamma + (1-qdelta) *...
-%               (1 - (1-qgamma) * exp(-10.^(est_beta * (allx-est_mean))));
     pf_quest = QuestP(weib, allx-est_mean);
 
     %%% Aggregate all intensity and response vectors
@@ -163,20 +136,34 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     colorMat = [1 0 0; 0 0 1; 0 0 0; 0 1 0; 1 1 0; 0 1 1; 1 0 1];
     hold on
     for (ii = 1:nints)
-        plot(1:numel(ints_vec{ii}), ints_vec{ii}, 'Color', colorMat(ii,:));
+        plot(1:numel(ints_vec{ii}), ints_vec{ii}, '-.x', 'Color', colorMat(ii,:));
     end
     hold off
     ylim([0, 2])
     xlabel('trial')
     ylabel(xstring)
     subplot(2,1,2)
-    hold on
     plot(allx(uniq), pf_quest(uniq), '-.b', out_xvals, arg_pars.pthresh(1:3), 'ob',...
          'MarkerSize', 7);
-    plot(allx(uniq), pf_ml(uniq), '-.r', out_xvals, arg_pars.pthresh(1:3), 'or',...
-         'MarkerSize', 7);
+    hold on
+    plot(allx(uniq), pf_ml(uniq), '-r', out_xvals, arg_pars.pthresh(1:3), 'or',...
+         'MarkerSize', 8, 'LineWidth', 2);
+
+    %%% Plot proportion of responses
+    resp0 = all_ints(find(all_resps == 0));
+    resp1 = all_ints(find(all_resps == 1));
+    edges = linspace(min_est, 1.2, 10);
+    bins_resp0 = histc(resp0, edges);
+    bins_resp1 = histc(resp1, edges);
+    sum_bins = bins_resp1 + bins_resp0
+    prop_bins = bins_resp1 ./ sum_bins
+    nzix = find(sum_bins ~= 0); % to avoid divide by 0
+    scatter(edges(nzix), prop_bins(nzix), 15*sum_bins(nzix), 'k', 'filled');
+%    scatter(edges(nzix), prop_bins(nzix), 'k', 'filled');
+
     hold off
     xlim([0, 1.5])
+    ylim([0, 1.1])
     xlabel(xstring);
     ylabel('p (resp=1)')
 end

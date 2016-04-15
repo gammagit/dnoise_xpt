@@ -12,12 +12,12 @@ function expt(arg_type, arg_subname)
 
         [wip, wrp, oldDL, oldWL] = init_screen();
         pars = init_params();
-        new_pars = reconfig_pars(arg_type, pars);
+        new_pars = reconfig_pars(arg_type, pars); % reconfig for type of expt
 
         %%% Linearize monitor
 %        oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, new_pars);
+        disp_intro(wip, wrp, new_pars, key_id);
 
         mycon = calibrate(wip, wrp, key_id, pars, 1)
 
@@ -185,11 +185,65 @@ function out_dev = get_keyboard_id()
 end
 
 
-function disp_intro(arg_wip, arg_wrp, arg_pars)
+function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
 %%% DISP_INTRO displays instructions for participants at the start of the
 %%% experiment.
 
     [cx, cy] = RectCenter(arg_wrp); % get coordinates of center
+
+    DrawFormattedText(arg_wip,...
+                        'Welcome to the experiment! This experiment studies how we deal with noise in videos.\n\nThe experiment consists of two sessions, each lasting around 1 hour.\n\nIf you are happy to participate, please sign the consent form and TURN OFF your mobile phone.\n\nOnce you are done, press n to go to the next screen.',...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        60, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 2);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(KeyCode(KbName('n')) ~= 1)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+
+    Screen('Flip', arg_wip);
+
+    WaitSecs('YieldSecs', 0.5);
+
+    DrawFormattedText(arg_wip,...
+                        'SESSION 1:\n\nThis session is split into a number of blocks. Each block lasts around five minutes.\n\nDuring each block you will be shown a series of simple videos and your task is to decide what you saw in the video.\n\nYou should use the Left and Right arrow keys to indicate your response.\n\nPress n to do an example.',...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        60, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 2);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(KeyCode(KbName('n')) ~= 1)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+
+    Screen('Flip', arg_wip);
+
+    WaitSecs('YieldSecs', 0.5);
+
+    %%% Display a calibration trial with large contrast and chosen stim
+    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 2.5, 1);
+
+    DrawFormattedText(arg_wip,...
+    'Great! In the first two blocks, you will be shown such videos for a fixed amount of time and then asked for a response.\n\nThe images in some videos will be more difficult to see than in others. In each case, try and be as accurate as possible, indicating your best estimate.\n\nPress n to start the experiment.',...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        60, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 2);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(KeyCode(KbName('n')) ~= 1)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+
+    Screen('Flip', arg_wip);
+
+    WaitSecs('YieldSecs', 0.5);
 
     %%% Compute coordinates of stimulus blob
     bxi2 = cx - arg_pars.blobsize(2) - (arg_pars.blobsize(2) / 2); % index of initial x-coord
@@ -227,7 +281,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars)
                         BlackIndex(arg_wip),...
                         60, 0, 0, 1.5);
     DrawFormattedText(arg_wip,...
-                        'In the following trials, use left and right arrow keys to indicate your choice.',...
+                        'In the following videos, use left and right arrow keys to indicate your choice.',...
                         'center',...
                         byi2 - 150,...
                         BlackIndex(arg_wip),...

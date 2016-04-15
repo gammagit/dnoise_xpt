@@ -41,4 +41,5 @@ function out_tex = gen_stimtex(wip, wrp, arg_blobsize, arg_stimsize, arg_tid,...
         out_tex = Screen('MakeTexture', wip, Background);
     end
 
+    clear Background Blob stimFrame
 end

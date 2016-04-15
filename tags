@@ -4,12 +4,13 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-023|	Session.vim	/^normal! 023|$/;"	m
+026|	Session.vim	/^normal! 026|$/;"	m
 SessionLoad	Session.vim	/^let SessionLoad = 1$/;"	v
 add_border	create_template.m	/^function out_T = add_border(arg_T, arg_winsize, arg_tsize)$/;"	f
 add_noise	add_noise.m	/^function out_Stim = add_noise(arg_Stim, arg_mu, arg_sd)$/;"	f
 block	block.m	/^function [out_rtseq out_decseq out_cicseq out_nlseq] = block(arg_wip, arg_wrp, arg_keyid, arg_pars)$/;"	f
-calibrate	calibrate.m	/^function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars, arg_xid, arg_pvals)$/;"	f
+calib_trial	calibrate.m	/^function out_dec = calib_trial(arg_wip, arg_wrp, arg_tid, arg_keyid, arg_pars)$/;"	f
+calibrate	calibrate.m	/^function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...$/;"	f
 convert_lum	create_blob.m	/^function out_Blob = convert_lum(arg_Blob, arg_lumbk, arg_lumax)$/;"	f
 create_blob	create_blob.m	/^function out_Blob = create_blob(arg_winsize, arg_tsize, arg_thick, arg_con,...$/;"	f
 create_template	create_template.m	/^function out_T = create_template(arg_winsize, arg_tsize, arg_thick, arg_con,...$/;"	f
@@ -17,6 +18,7 @@ disp_intro	expt.m	/^function disp_intro(arg_wip, arg_wrp, arg_pars)$/;"	f
 disp_time_n_rwd	iti.m	/^function disp_time_n_rwd(arg_wip,...$/;"	f
 draw_fixation	draw_fixation.m	/^function draw_fixation(wip, wrp, col)$/;"	f
 expt	expt.m	/^function expt(arg_type, arg_subname)$/;"	f
+fit_mlepf	fit_mlepf.m	/^function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)$/;"	f
 gen_stimtex	gen_stimtex.m	/^function out_tex = gen_stimtex(wip, wrp, arg_blobsize, arg_stimsize, arg_tid,...$/;"	f
 get_disp_coord	get_disp_coord.m	/^function coords = get_disp_coord(wrp)$/;"	f
 get_keyboard_id	expt.m	/^function out_dev = get_keyboard_id()$/;"	f
@@ -26,11 +28,13 @@ init_params	init_params.m	/^function out_pars = init_params()$/;"	f
 init_screen	expt.m	/^function [wip, wrp, oldDL, oldWL] = init_screen()$/;"	f
 iti	iti.m	/^function iti(arg_wip, arg_wrp, arg_tid, arg_dec, arg_correct, arg_ctseq, arg_tzero, arg_pars)$/;"	f
 linearize_monitor	expt.m	/^function oldgfxlut = linearize_monitor(wip)$/;"	f
+nllpf	fit_mlepf.m	/^function out_ll = nllpf(arg_pars, arg_data)$/;"	f
 plot_rwd_anim	iti.m	/^function plot_rwd_anim(arg_wip, arg_wrp, ttime, dtime, ii, arg_nframes)$/;"	f
+psychf	fit_mlepf.m	/^function out_y = psychf(arg_pars, arg_x)$/;"	f
 reconfig_pars	expt.m	/^function out_pars = reconfig_pars(arg_type, arg_pars)$/;"	f
 rescale_template	create_template.m	/^function out_T = rescale_template(arg_T, arg_con)$/;"	f
 reset_monitor	expt.m	/^function reset_monitor(wip, oldgfxlut)$/;"	f
-s:l	Session.vim	/^let s:l = 25 - ((24 * winheight(0) + 16) \/ 33)$/;"	v
+s:l	Session.vim	/^let s:l = 38 - ((6 * winheight(0) + 16) \/ 33)$/;"	v
 s:so_save	Session.vim	/^let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0$/;"	v
 s:sx	Session.vim	/^let s:sx = expand("<sfile>:p:r")."x.vim"$/;"	v
 s:wipebuf	Session.vim	/^  let s:wipebuf = bufnr('%')$/;"	v

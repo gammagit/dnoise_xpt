@@ -1,7 +1,8 @@
-function expt(arg_type, arg_subname)
+function out_results = expt(arg_type, arg_sno, arg_subname)
 %%% EXPT simulates an entire experiment
 %%%
-%%% arg_type = type of experiment (1=vary_noise; 2=vary_SNR; 3=pulse)
+%%% arg_type = type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
+%%% arg_sno = session-number (1/2)
     
     try
         %%% Assign unique id to subject
@@ -12,16 +13,40 @@ function expt(arg_type, arg_subname)
 
         [wip, wrp, oldDL, oldWL] = init_screen();
         pars = init_params();
-        new_pars = reconfig_pars(arg_type, pars); % reconfig for type of expt
 
         %%% Linearize monitor
 %        oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, new_pars, key_id);
+        disp_intro(wip, wrp, pars, key_id);
 
-        mycon = calibrate(wip, wrp, key_id, pars, 1)
+        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
+        %%% Begin: DEBUG
+%        xvals = [0.35, 0.6, 1.0];
+%        nc = 5; nic = 3;
+        %%% End: DEBUG
 
-%        [dtseq, decseq, cicseq, nlseq] = block(wip, wrp, key_id, new_pars);
+        new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con
+
+        disp_interlude(wip, wrp, new_pars, key_id, nc, nic);
+
+        disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
+        for ii = 1:new_pars.nblocks
+            [dtseq, decseq, cicseq, nlseq, stimseq] =...
+                block(wip, wrp, key_id, new_pars);
+            nc = sum(cicseq == true);
+            nic = sum(cicseq == false);
+            disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_sno);
+
+            %%% Store everything
+            out_results{ii}.xvals = xvals;
+            out_results{ii}.pars = new_pars;
+            out_results{ii}.dtseq = dtseq;
+            out_results{ii}.decseq = decseq;
+            out_results{ii}.cicseq = cicseq;
+            out_results{ii}.nlseq = nlseq;
+            out_results{ii}.stimseq = stimseq;
+        end
+
 
 %        nlseq
 %        decseq
@@ -95,11 +120,11 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
 end
 
 
-function out_pars = reconfig_pars(arg_type, arg_pars)
+function out_pars = reconfig_pars(arg_type, arg_pars, arg_xvals)
 %%% RECONFIG_PARS changes the levels of noise and contrast parameters based on
 %%% the type of experiment.
 %%%
-%%% arg_type = type of experiment (1=vary_noise; 2=vary_SNR; 3=pulse)
+%%% arg_type = type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
 %%% arg_pars = experiment parameters set in init_params.m
 
     out_pars = arg_pars; % Initialise
@@ -108,14 +133,13 @@ function out_pars = reconfig_pars(arg_type, arg_pars)
     %%% low noise levels; if type=2 copy the const value for contrast into both
     %%% high and low contrast
     switch arg_type 
-    case 1 % variable contrast, but constant noise
-        out_pars.sd_mu.lo = out_pars.sd_mu.const;
-        out_pars.sd_sd.lo = out_pars.sd_sd.const;
-        out_pars.sd_mu.hi = out_pars.sd_mu.const;
-        out_pars.sd_sd.hi = out_pars.sd_sd.const;
-    case 2 % constant contrast, but variable noise
-        out_pars.con.lo = out_pars.con.const;
-        out_pars.con.hi = out_pars.con.const;
+    case 1 % constant contrast, but variable noise
+        out_pars.con = out_pars.con.const;
+        out_pars.sd_mu = arg_xvals;
+    case 2 % variable contrast, but constant noise
+        out_pars.con = arg_xvals;
+        out_pars.sd_mu = out_pars.sd_mu.const;
+        out_pars.sd_sd = out_pars.sd_sd.const;
     end
 end
 
@@ -226,7 +250,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     WaitSecs('YieldSecs', 0.5);
 
     %%% Display a calibration trial with large contrast and chosen stim
-    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 2.5, 1);
+    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 2.5, 2);
 
     DrawFormattedText(arg_wip,...
     'Great! In the first two blocks, you will be shown such videos for a fixed amount of time and then asked for a response.\n\nThe images in some videos will be more difficult to see than in others. In each case, try and be as accurate as possible, indicating your best estimate.\n\nPress n to start the experiment.',...
@@ -281,7 +305,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
                         BlackIndex(arg_wip),...
                         60, 0, 0, 1.5);
     DrawFormattedText(arg_wip,...
-                        'In the following videos, use left and right arrow keys to indicate your choice.',...
+                        ['Each of the following videos will be shown for ', num2str(arg_pars.tcalib), ' sec.\n\nUse Left and Right arrow keys to indicate your choice after seeing the video.'],...
                         'center',...
                         byi2 - 150,...
                         BlackIndex(arg_wip),...
@@ -303,4 +327,240 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
 
     WaitSecs('YieldSecs', 0.5);
 
+end
+
+
+function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
+%%% DISP_INTERLUDE displays instructions after calibration and before actual
+%%% experiment.
+
+    [cx, cy] = RectCenter(arg_wrp); % get coordinates of center
+
+    %%% Message: Number of correct / incorrect
+    DrawFormattedText(arg_wip,...
+                        ['Thanks! In that block, you made ', num2str(arg_nc), ' correct decisions and ', num2str(arg_nic), ' incorrect decisions.\n\nPress n to proceed.'],...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        60, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 2);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(KeyCode(KbName('n')) ~= 1)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+
+    Screen('Flip', arg_wip);
+
+    WaitSecs('YieldSecs', 0.5);
+
+    %%% Message: Part1 -> Part2
+    DrawFormattedText(arg_wip,...
+                        ['In the previous block, each video was shown for a fixed duration = ', num2str(arg_pars.tcalib), 'secs. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* and as *accurately* as you can.\n\nPress Space to see an example video. When you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        60, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 3);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(KeyCode(KbName('space')) ~= 1)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+
+    Screen('Flip', arg_wip);
+
+    WaitSecs('YieldSecs', 0.5);
+
+    %%% Display an example trial
+    [stims, dt, dec] = trial(arg_wip, arg_wrp, 5, 3, arg_keyid, arg_pars);
+
+    %%% Display result of trial
+    if (dec == 5)
+        dec_string = 'correct';
+        beg_string = 'Great! ';
+    else
+        dec_string = 'incorrect';
+        beg_string = '';
+    end
+    DrawFormattedText(arg_wip,...
+                        [beg_string, 'Your response was ', int2str(dec), '. This response was ', dec_string, '. You took ', num2str(dt, 3), ' msec to make this decision.\n\nIf you have any questions you can ask the experimenter now.\n\nPress n when you are ready to start.'],...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        60, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 2);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(KeyCode(KbName('n')) ~= 1)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+
+    Screen('Flip', arg_wip);
+
+    WaitSecs('YieldSecs', 0.5);
+
+end
+
+function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
+                         arg_nic, arg_bid, arg_sno)
+%%% DISP_PREBLOCK displays instructions before the start of each block
+
+    [cx, cy] = RectCenter(arg_wrp); % get coordinates of center
+
+    %%% Compute coordinates of stimulus blob
+    bxi2 = cx - arg_pars.blobsize(2) - (arg_pars.blobsize(2) / 2); % index of initial x-coord
+    bxf2 = bxi2 + arg_pars.blobsize(2) - 1; % index of final x-coord
+    byi2 = cy - (arg_pars.blobsize(1) / 2);
+    byf2 = byi2 + arg_pars.blobsize(1) - 1;
+    bxi5 = cx + arg_pars.blobsize(2) - (arg_pars.blobsize(2) / 2); % index of initial x-coord
+    bxf5 = bxi5 + arg_pars.blobsize(2) - 1; % index of final x-coord
+    byi5 = cy - (arg_pars.blobsize(1) / 2);
+    byf5 = byi5 + arg_pars.blobsize(1) - 1;
+
+    Background = zeros(cy*2,cx*2) + arg_pars.lumbk; % Image matrix
+    Blob2 = create_blob(arg_pars.blobsize, arg_pars.stimsize, arg_pars.thick,...
+        2, arg_pars.mu, 0.05, arg_pars.lumbk, arg_pars.lumax, 2);
+    Blob5 = create_blob(arg_pars.blobsize, arg_pars.stimsize, arg_pars.thick,...
+        2, arg_pars.mu, 0.05, arg_pars.lumbk, arg_pars.lumax, 5);
+
+    stimFrame = Background;
+    stimFrame(byi2:byf2, bxi2:bxf2) = Blob2;
+    stimFrame(byi5:byf5, bxi5:bxf5) = Blob5;
+
+    if (arg_bid == 0)
+        texeg = Screen('MakeTexture', arg_wip, stimFrame);
+        Screen('DrawTexture', arg_wip, texeg);
+
+        DrawFormattedText(arg_wip,...
+                            'Left',...
+                            bxi2 + 70,...
+                            byi2 + 200,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        DrawFormattedText(arg_wip,...
+                            'Right',...
+                            bxi5 + 70,...
+                            byi5 + 200,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        DrawFormattedText(arg_wip,...
+                            ['Each of the following videos will be shown till you have made a decision. Use Left and Right arrow keys to indicate your choice.\n\nMake decisions as *quickly* and *accurately* as you can.'],...
+                            'center',...
+                            byi2 - 200,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        DrawFormattedText(arg_wip,...
+                            'Press "Space" to start',...
+                            'center',...
+                            cy*2 - 50,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 1);
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+        while(KeyCode(KbName('space')) ~= 1)
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+        end
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 0.5);
+    elseif (arg_bid == arg_pars.nblocks)
+        %%% Message: Number of correct / incorrect
+        DrawFormattedText(arg_wip,...
+                            ['In that block, you made ', num2str(arg_nc), ' correct decisions and ', num2str(arg_nic), ' incorrect decisions.\n\nPress n to proceed.'],...
+                            'center',...
+                            'center',...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 2);
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+        while(KeyCode(KbName('n')) ~= 1)
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+        end
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 0.5);
+
+        %%% End of experiment
+        if (arg_sno == 1)
+            endstring = 'That is the end of the session!\n\nPlease organise a time with the experimenter for the second session.\n\nThank you.';
+        else
+            endstring = 'That is the end of the experiment!\n\nThank you for participating.';
+        end
+        DrawFormattedText(arg_wip,...
+                            endstring,...
+                            'center',...
+                            'center',...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 2);
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+        while(KeyCode(KbName('n')) ~= 1)
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+        end
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 0.5);
+    else
+        %%% Message: Number of correct / incorrect
+        DrawFormattedText(arg_wip,...
+                            ['In that block, you made ', num2str(arg_nc), ' correct decisions and ', num2str(arg_nic), ' incorrect decisions.\n\nPress n to proceed.'],...
+                            'center',...
+                            'center',...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 2);
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+        while(KeyCode(KbName('n')) ~= 1)
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+        end
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 0.5);
+
+        %%% End of experiment
+        DrawFormattedText(arg_wip,...
+                            ['Next block is block # ', num2str(arg_bid+1), ' out of ', num2str(arg_pars.nblocks), '.\n\nThe experiment will automatically proceed after 30 secs. Please use this time to take a brief rest.'],...
+                            'center',...
+                            'center',...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 30);
+
+        texeg = Screen('MakeTexture', arg_wip, stimFrame);
+        Screen('DrawTexture', arg_wip, texeg);
+        DrawFormattedText(arg_wip,...
+                            'Left',...
+                            bxi2 + 70,...
+                            byi2 + 200,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        DrawFormattedText(arg_wip,...
+                            'Right',...
+                            bxi5 + 70,...
+                            byi5 + 200,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        DrawFormattedText(arg_wip,...
+                            ['Each of the following videos will be shown till you have made a decision. Use Left and Right arrow keys to indicate your choice.\n\nMake decisions as *quickly* and *accurately* as you can.'],...
+                            'center',...
+                            byi2 - 200,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        DrawFormattedText(arg_wip,...
+                            'Press "Space" to start',...
+                            'center',...
+                            cy*2 - 50,...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 1);
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+        while(KeyCode(KbName('space')) ~= 1)
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+        end
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 0.5);
+    end
 end

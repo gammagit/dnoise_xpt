@@ -14,6 +14,8 @@ syntax keyword Tag calibrate
 syntax keyword Tag convert_lum
 syntax keyword Tag create_blob
 syntax keyword Tag create_template
+syntax keyword Tag disp_interblock
+syntax keyword Tag disp_interlude
 syntax keyword Tag disp_intro
 syntax keyword Tag disp_time_n_rwd
 syntax keyword Tag draw_fixation
@@ -26,6 +28,7 @@ syntax keyword Tag get_tloc
 syntax keyword Tag get_vlen
 syntax keyword Tag init_params
 syntax keyword Tag init_screen
+syntax keyword Tag iti
 syntax keyword Tag iti
 syntax keyword Tag linearize_monitor
 syntax keyword Tag nllpf

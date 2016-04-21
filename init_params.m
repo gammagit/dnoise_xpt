@@ -1,18 +1,19 @@
 function out_pars = init_params()
 
-    %%% SNR parameters
-    out_pars.con.lo = 0.45;
-    out_pars.con.hi = 1.90;
-    out_pars.con.const = 0.50; % contrast in single SNR expt
+    %%% Experiment parameters
+    out_pars.nblocks = 2; % number of blocks
+    out_pars.ntrials = 10; % number of trials in block (if not fixed-time)
+
+    %%% Signal parameters
+    out_pars.con = [0.45 1.0 1.90];
+    out_pars.con.const = [0.50 0.50 0.50]; % contrast in variable noise xpt
 
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame
-    out_pars.sd_mu.lo = 0.05; % low noise: mean sd frame-to-frame
-    out_pars.sd_sd.lo = 0.02; % low noise: sd of sd frame-to-frame
-    out_pars.sd_mu.hi = 0.10; % high noise: mean sd frame-to-frame
-    out_pars.sd_sd.hi = 0.03; % high noise: sd of sd frame-to-frame
-    out_pars.sd_mu.const = 0.10; % constant noise expt, mean sd
-    out_pars.sd_sd.const = 0.03; % constant noise expt, sd sd
+    out_pars.sd_mu = [0.05 0.08 0.10]; % mean sd frame-to-frame
+    out_pars.sd_mu.const = [0.10 0.10 0.10]; % constant noise expt, mean sd
+    out_pars.sd_sd = [0 0 0]; % sd of sd frame-to-frame
+    out_pars.sd_sd.const = [0 0 0];%0.03; % constant noise expt, sd sd
 
     %%% Display parameters
     out_pars.blobsize = [200 200];
@@ -22,6 +23,7 @@ function out_pars = init_params()
     out_pars.lumax = 254;
 
     %%% Time-related parameters
+    out_pars.mindt = 0.40;
     out_pars.isi = 0.05;
     out_pars.iti_c = 2;
     out_pars.iti_ic = 5;
@@ -38,6 +40,8 @@ function out_pars = init_params()
 
     %%% Warm-up trials parameters
     out_pars.nwup = 10; % number of warm-up trials
-    out_pars.wup.min_con = 0.4; % minimum contrast during warm-up
+    out_pars.wup.min_con = 0.5; % minimum contrast during warm-up
     out_pars.wup.max_con = 1.5; % maximum contrast during warm-up
+    out_pars.wup.min_sd = 0.05; % minimum contrast during warm-up
+    out_pars.wup.max_sd = 0.15; % maximum contrast during warm-up
 end

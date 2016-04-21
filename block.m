@@ -1,10 +1,12 @@
-function [out_rtseq out_decseq out_cicseq out_nlseq] = block(arg_wip, arg_wrp, arg_keyid, arg_pars)
+function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
+    block(arg_wip, arg_wrp, arg_keyid, arg_pars)
 %%% BLOCK simulates a block of trials and returns decisions and decision times 
 %%%
 %%% out_rtseq = vector of floats containing the reaction times
 %%% out_decseq = vector of ints containing the sequence of decisions
 %%% out_cicseq = vector of booleans indicating correct/incorrect decisions
-%%% out_nlseq = vector containing noise levels for trials
+%%% out_snrseq = vector containing noise levels for trials
+%%% out_stims = cell array containing stimuli for every frame of every trial
 %%%
 %%% arg_wip = Screen windowPtr (see Psychtoolbox)
 %%% arg_wrp = Screen rect (see Psychtoolbox)
@@ -29,24 +31,22 @@ function [out_rtseq out_decseq out_cicseq out_nlseq] = block(arg_wip, arg_wrp, a
     out_rtseq = []; % vector containing RTs
     out_decseq = []; % vector containing decisions
     ctseq = []; % vector containing times (in block) for correct decisions
-    out_nlseq = [];
+    out_snrseq = [];
     out_cicseq = []; % vector containing correct / incorrect
-    while ((GetSecs - tzero_block) <= arg_pars.tblock)
+    ii = 1;
+    total_trials = arg_pars.ntrials;
+%    while ((GetSecs - tzero_block) <= arg_pars.tblock)
+    while (ii <= total_trials)
         if (rand > 0.5)
             stim_id = 2;
         else
             stim_id = 5;
         end
-        if (rand > 0.5)
-            level = 1; % low noise level for trial
-        else
-            level = 2;
-        end
-        out_nlseq = [out_nlseq level];
-
+        level = datasample(1:numel(arg_pars.con), 1); % sample choose SNR level
+        out_snrseq = [out_snrseq level];
 
         %%% Simulate trial
-        [dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars);
+        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars);
         if (stim_id == dec)
             correct = true;
             ctseq = [ctseq GetSecs-tzero_block];
@@ -55,10 +55,16 @@ function [out_rtseq out_decseq out_cicseq out_nlseq] = block(arg_wip, arg_wrp, a
         end
 
         %%% Diplay ITI
-        iti(arg_wip, arg_wrp, stim_id, dec, correct, ctseq, tzero_block, arg_pars);
+%        iti(arg_wip, arg_wrp, stim_id, dec, correct, ctseq, tzero_block, arg_pars);
+        iti_norwd(arg_wip, arg_wrp, stim_id, dec, dt, arg_pars);
 
-        out_rtseq = [out_rtseq dt];
-        out_decseq = [out_decseq dec];
-        out_cicseq = [out_cicseq correct];
+        %%% If responded too quickly, then add a trial
+        if (dt >= arg_pars.mindt)
+            ii = ii + 1;
+            out_rtseq = [out_rtseq dt];
+            out_decseq = [out_decseq dec];
+            out_cicseq = [out_cicseq correct];
+            out_stims{ii-1} = stims;
+        end
     end
 end

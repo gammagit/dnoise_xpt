@@ -1,10 +1,11 @@
-function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_keyid, arg_pars)
+function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
+                                             arg_level, arg_keyid, arg_pars)
 %%% TRIAL simulates a single trial
 %%%
 %%% arg_wip = Screen windowPtr (see Psychtoolbox)
 %%% arg_wrp = Screen rect (see Psychtoolbox)
 %%% arg_tid = integer containing the id of stimulus template: 0=Back, 2=T2, 5=T5
-%%% arg_level = integer indicating the level of noise (1=low, 2=high)
+%%% arg_level = integer indicating the level of contrast / noise
 %%% arg_keyid = int containing the ID of keyboard
 %%% arg_pars = structure containing parameters of the experiment
 
@@ -16,15 +17,9 @@ function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_key
     lumax = arg_pars.lumax;
     isi = arg_pars.isi;
     mu_trial = arg_pars.mu;
-    if (arg_level == 1)
-        con = arg_pars.con.lo;
-        sd_mu_trial = arg_pars.sd_mu.lo;
-        sd_sd_trial = arg_pars.sd_sd.lo;
-    else
-        con = arg_pars.con.hi;
-        sd_mu_trial = arg_pars.sd_mu.hi;
-        sd_sd_trial = arg_pars.sd_sd.hi;
-    end
+    con = arg_pars.con(arg_level);
+    sd_mu_trial = arg_pars.sd_mu(arg_level);
+    sd_sd_trial = arg_pars.sd_sd(arg_level);
 
     %%% Display background and fixation cross
 %    texbk = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, 0, thick, con, 0, 0,...
@@ -39,9 +34,13 @@ function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_key
     pressed = 0; pressedCode = []; % Flag & code for keyboard queue
     KbQueueStart(arg_keyid); % Start a new queue for each trial
 
+    %%% Record the stimuli presented during each frame
+    out_stim.mu = []; % mean noise during each frame
+    out_stim.sd = []; % sd of noise during each frame
+    out_stim.con = []; % contrast during each frame
+
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
-    oldtex = []; % a pointer to old textures (to save memory)
     while(~(any(pressedCode == KbName('Left')) ||...
             any(pressedCode == KbName('Right'))))
         %%% Sample noise from noise distribution
@@ -49,9 +48,6 @@ function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_key
         sd = sd_mu_trial + (sd_sd_trial * randn); % sample N(sd_mu,sd_sd)
 
         %%% Close previous texture pointers
-%        if (~isempty(oldtex))
-%            Screen('Close', oldtex);
-%        end
         if (exist('stimtex'))
             Screen('Close', stimtex);
         end
@@ -59,12 +55,14 @@ function [out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid, arg_level, arg_key
         %%% Generate texture for stim
         stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, arg_tid,...
             thick, con, mu, sd, lumbk, lumax);
-%        oldtex = stimtex;
+
+        out_stim.mu = [out_stim.mu, mu];
+        out_stim.sd = [out_stim.sd, sd];
+        out_stim.con = [out_stim.con, con];
 
         % Display stimuli
         tzero_stim = GetSecs;
         Screen('DrawTexture', arg_wip, stimtex);
-%        [VBLTime tzero_flip FlipTime]=Screen('Flip', arg_wip);
         [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
         ifi = FlipTime - tzero_stim; % Inter-frame interval
         next_flip_time = tzero_flip + isi - ifi; % Keep displaying stim for isi.on

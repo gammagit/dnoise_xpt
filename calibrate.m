@@ -1,5 +1,5 @@
-function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
-    arg_xid, arg_pvals)
+function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,...
+                                                  arg_pars, arg_xid, arg_plot)
 %%% CALIBRATE runs a sequence of 2AFC trials and uses the responses to generate
 %%% a psychometric function for the participant. It then computes the values
 %%% of the desired intensity variable at the given probability values.
@@ -18,17 +18,17 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
 
     %%% Set initial values of estimates based on variable being calibrated
     if (arg_xid == 1)
-        est = arg_pars.con.init; % Estimated variable init to con.init
-        min_est = 0; % defines range for contrast
-        max_est = 3; % max contrast
-        est_sd = 0.25; % a large SD as prior
-        xstring = 'contrast threshold estimates';
-    else
         est = arg_pars.sd_mu.init; % Estimated variable init to sd_mu.init
         min_est = 0; % defines range for noise
         max_est = 0.2; % max mean noise
         est_sd = 0.1; % a large SD as prior
         xstring = 'noise threshold estimates';
+    else
+        est = arg_pars.con.init; % Estimated variable init to con.init
+        min_est = 0; % defines range for contrast
+        max_est = 3; % max contrast
+        est_sd = 0.25; % a large SD as prior
+        xstring = 'contrast threshold estimates';
     end
 
     %%% Create matrices of intensities displayed and responses given
@@ -51,11 +51,11 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     for (ii = 1:arg_pars.nwup)
         %%% Sample intensity
         if (arg_xid == 1)
-            ints_ii = arg_pars.wup.min_con +...
-                    (arg_pars.wup.max_con - arg_pars.wup.min_con) * rand;
-        else
             ints_ii = arg_pars.wup.min_sd +...
                     (arg_pars.wup.max_sd - arg_pars.wup.min_sd) * rand;
+        else
+            ints_ii = arg_pars.wup.min_con +...
+                    (arg_pars.wup.max_con - arg_pars.wup.min_con) * rand;
         end
 
         %%% Display a trial
@@ -133,6 +133,8 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
         all_ints = [all_ints ints_vec{ii}];
         all_resps = [all_resps resp_vec{ii}];
     end
+    out_nc = sum(all_resps == 1); % number of correct responses
+    out_nic = sum(all_resps == 0); % number of incorrect
 
     %%% Construct final psychometric fn based on staircase method (Quest)
     est_mean = QuestMean(weib); % final estimate
@@ -151,40 +153,42 @@ function out_xvals = calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars,...
     out_xvals = interp1(pf_ml(uniq), allx(uniq), arg_pars.pthresh(1:3));
 
     %%% Display estimated psychometric functions and data
-    figure
-    %%% Plot staircases
-    subplot(2,1,1)
-    colorMat = [1 0 0; 0 0 1; 0 0 0; 0 1 0; 1 1 0; 0 1 1; 1 0 1];
-    hold on
-    for (ii = 1:nints)
-        plot(1:numel(ints_vec{ii}), ints_vec{ii}, '-.x', 'Color', colorMat(ii,:));
+    if (arg_plot)
+        figure
+        %%% Plot staircases
+        subplot(2,1,1)
+        colorMat = [1 0 0; 0 0 1; 0 0 0; 0 1 0; 1 1 0; 0 1 1; 1 0 1];
+        hold on
+        for (ii = 1:nints)
+            plot(1:numel(ints_vec{ii}), ints_vec{ii}, '-.x', 'Color', colorMat(ii,:));
+        end
+        hold off
+        ylim([0, 2])
+        xlabel('trial')
+        ylabel(xstring)
+
+        %%% Plot psychometric functions
+        subplot(2,1,2)
+        plot(allx(uniq), pf_quest(uniq), '-.b', out_xvals, arg_pars.pthresh(1:3), 'ob',...
+            'MarkerSize', 7);
+        hold on
+        plot(allx(uniq), pf_ml(uniq), '-r', out_xvals, arg_pars.pthresh(1:3), 'or',...
+            'MarkerSize', 8, 'LineWidth', 2);
+
+        %%% Plot proportion of responses
+        resp0 = all_ints(find(all_resps == 0));
+        resp1 = all_ints(find(all_resps == 1));
+        edges = linspace(min_est, 1.2, 10);
+        bins_resp0 = histc(resp0, edges);
+        bins_resp1 = histc(resp1, edges);
+        sum_bins = bins_resp1 + bins_resp0
+        prop_bins = bins_resp1 ./ sum_bins
+        nzix = find(sum_bins ~= 0); % to avoid divide by 0
+        scatter(edges(nzix), prop_bins(nzix), 15*sum_bins(nzix), 'k', 'filled');
+        hold off
+        xlim([0, 1.5])
+        ylim([0, 1.1])
+        xlabel(xstring);
+        ylabel('p (resp=1)')
     end
-    hold off
-    ylim([0, 2])
-    xlabel('trial')
-    ylabel(xstring)
-
-    %%% Plot psychometric functions
-    subplot(2,1,2)
-    plot(allx(uniq), pf_quest(uniq), '-.b', out_xvals, arg_pars.pthresh(1:3), 'ob',...
-         'MarkerSize', 7);
-    hold on
-    plot(allx(uniq), pf_ml(uniq), '-r', out_xvals, arg_pars.pthresh(1:3), 'or',...
-         'MarkerSize', 8, 'LineWidth', 2);
-
-    %%% Plot proportion of responses
-    resp0 = all_ints(find(all_resps == 0));
-    resp1 = all_ints(find(all_resps == 1));
-    edges = linspace(min_est, 1.2, 10);
-    bins_resp0 = histc(resp0, edges);
-    bins_resp1 = histc(resp1, edges);
-    sum_bins = bins_resp1 + bins_resp0
-    prop_bins = bins_resp1 ./ sum_bins
-    nzix = find(sum_bins ~= 0); % to avoid divide by 0
-    scatter(edges(nzix), prop_bins(nzix), 15*sum_bins(nzix), 'k', 'filled');
-    hold off
-    xlim([0, 1.5])
-    ylim([0, 1.1])
-    xlabel(xstring);
-    ylabel('p (resp=1)')
 end

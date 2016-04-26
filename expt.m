@@ -104,12 +104,15 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
         whichScreen = max(Screen('Screens')); % Open Screen on last monitor
         HideCursor;
         [wip, wrp] = Screen('OpenWindow', whichScreen);
-%        Screen('TextFont',wip, 'Courier New');
+        try
+            Screen('TextFont',wip, 'Courier New');
 %        Screen('TextFont',wip, '-urw-urw bookman l-medium-r-normal--0-0-0-0-p-0-koi8-r');
 %        Screen('TextFont',wip, '-adobe-helvetica-bold-r-normal--25-180-100-100-p-138-iso10646-1');
-        Screen('TextFont',wip, '-adobe-courier-bold-r-normal--25-180-100-100-m-150-iso8859-1');
-        Screen('TextSize', wip, 22);
-        Screen('TextStyle', wip, 1+2);
+        catch
+            Screen('TextFont',wip, '-adobe-courier-bold-r-normal--25-180-100-100-m-150-iso8859-1');
+        end
+        Screen('TextSize', wip, 16);
+        Screen('TextStyle', wip, 0);
         priorityLevel=MaxPriority(wip);
         Priority(priorityLevel);
 
@@ -171,14 +174,14 @@ function out_dev = get_keyboard_id()
 
     [id,name,allinfo] = GetKeyboardIndices; % get a list of all devices connected
 %    allinfo{6}
-    device=0;
+    device=-1;
     for i=1:length(name) %for each possible device
         if strcmp(name{i},deviceString) %compare the name to the name you want
             device=id(i); %grab the correct id, and exit loop
             break;
         end
     end
-    if device==0 % if device wasn't found, try to look for other keyboards
+    if device==-1 % if device wasn't found, try to look for other keyboards
         all_ixs = [];
         name_ixs = [];
         deviceString1='eyboard';%% Match any [Ky]eyboard
@@ -201,7 +204,7 @@ function out_dev = get_keyboard_id()
             device = all_ixs(1);
         end
     end
-    if device==0 %%error checking, if device is still 0
+    if device==-1 %%error checking, if device is still 0
         error('Could not match a Keyboard device');
     end
 
@@ -253,7 +256,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 2.5, 2);
 
     DrawFormattedText(arg_wip,...
-    'Great! In the first two blocks, you will be shown such videos for a fixed amount of time and then asked for a response.\n\nThe images in some videos will be more difficult to see than in others. In each case, try and be as accurate as possible, indicating your best estimate.\n\nPress n to start the experiment.',...
+    ['Great! In the first block, you will see each video for ', num2str(arg_pars.tcalib), ' sec and then be asked for a response.\n\nThe images in some videos may be quite difficult to see. This helps us calibrate your vision.\n\nIn each case, try and be as *accurate* as possible, indicating your best estimate.\n\nPress n to start the experiment.'],...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -356,7 +359,7 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
 
     %%% Message: Part1 -> Part2
     DrawFormattedText(arg_wip,...
-                        ['In the previous block, each video was shown for a fixed duration = ', num2str(arg_pars.tcalib), 'secs. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* and as *accurately* as you can.\n\nPress Space to see an example video. When you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
+                        ['In the previous block, each video was shown for ', num2str(arg_pars.tcalib), ' sec. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* and as *accurately* as you can.\n\nPress Space to see an example video. When you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -372,33 +375,44 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
 
     WaitSecs('YieldSecs', 0.5);
 
-    %%% Display an example trial
-    [stims, dt, dec] = trial(arg_wip, arg_wrp, 5, 3, arg_keyid, arg_pars);
+    repeat_example = true;
+    while(repeat_example == true)
+        %%% Display an example trial
+        if (rand > 0.5)
+            stim_id = 2;
+        else
+            stim_id = 5;
+        end
+        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, 3, arg_keyid, arg_pars);
 
-    %%% Display result of trial
-    if (dec == 5)
-        dec_string = 'correct';
-        beg_string = 'Great! ';
-    else
-        dec_string = 'incorrect';
-        beg_string = '';
-    end
-    DrawFormattedText(arg_wip,...
-                        [beg_string, 'Your response was ', int2str(dec), '. This response was ', dec_string, '. You took ', num2str(dt, 3), ' msec to make this decision.\n\nIf you have any questions you can ask the experimenter now.\n\nPress n when you are ready to start.'],...
-                        'center',...
-                        'center',...
-                        BlackIndex(arg_wip),...
-                        60, 0, 0, 1.5);
-    Screen('Flip', arg_wip);
-    WaitSecs('YieldSecs', 2);
-    [KeyIsDown, endrt, KeyCode]=KbCheck;
-    while(KeyCode(KbName('n')) ~= 1)
+        %%% Display result of trial
+        if (dec == stim_id)
+            dec_string = 'correct';
+            beg_string = 'Great! ';
+        else
+            dec_string = 'incorrect';
+            beg_string = '';
+        end
+        DrawFormattedText(arg_wip,...
+                            [beg_string, 'Your response was ', int2str(dec), '. This response was ', dec_string, '. You took ', num2str(dt, 3), ' secs to make this decision.\n\nIf you have any questions you can ask the experimenter now.\n\nPress "y" if you would like to do another example or "n" if you would like to start.'],...
+                            'center',...
+                            'center',...
+                            BlackIndex(arg_wip),...
+                            60, 0, 0, 1.5);
+        Screen('Flip', arg_wip);
+        WaitSecs('YieldSecs', 2);
         [KeyIsDown, endrt, KeyCode]=KbCheck;
+        while(KeyCode(KbName('n')) ~= 1 && KeyCode(KbName('y')) ~= 1 )
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+        end
+        if(KeyCode(KbName('n')) == 1)
+            repeat_example = false;
+        end
+
+        Screen('Flip', arg_wip);
+
+        WaitSecs('YieldSecs', 0.5);
     end
-
-    Screen('Flip', arg_wip);
-
-    WaitSecs('YieldSecs', 0.5);
 
 end
 

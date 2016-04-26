@@ -42,7 +42,11 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         else
             stim_id = 5;
         end
-        level = datasample(1:numel(arg_pars.con), 1); % sample choose SNR level
+
+        %%% Randomly sample SNR level -- not using datasample: >R2011b
+%        level = datasample(1:numel(arg_pars.con), 1); % sample choose SNR level
+        randorder = randperm(numel(arg_pars.con));
+        level = randorder(1);
         out_snrseq = [out_snrseq level];
 
         %%% Simulate trial

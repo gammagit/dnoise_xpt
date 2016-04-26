@@ -47,83 +47,113 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
     allx = linspace(min_est, max_est, 1000);
     ints_perms = randperm(nints); % first permutation of intensities
 
-    %%% Warm-up: Display some easy trials
-    for (ii = 1:arg_pars.nwup)
-        %%% Sample intensity
-        if (arg_xid == 1)
-            ints_ii = arg_pars.wup.min_sd +...
-                    (arg_pars.wup.max_sd - arg_pars.wup.min_sd) * rand;
-        else
-            ints_ii = arg_pars.wup.min_con +...
-                    (arg_pars.wup.max_con - arg_pars.wup.min_con) * rand;
+    for (jj = 1:2) % Split calibration into two sub-blocks
+        %%% Warm-up: Display some easy trials
+        for (ii = 1:arg_pars.nwup(jj))
+            %%% Sample intensity
+            if (arg_xid == 1)
+                ints_ii = arg_pars.wup.min_sd +...
+                        (arg_pars.wup.max_sd - arg_pars.wup.min_sd) * rand;
+            else
+                ints_ii = arg_pars.wup.min_con +...
+                        (arg_pars.wup.max_con - arg_pars.wup.min_con) * rand;
+            end
+
+            %%% Display a trial
+            if (rand > 0.5)
+                stim_id = 2;
+            else
+                stim_id = 5;
+            end
+            dec = calib_trial(arg_wip, arg_wrp, stim_id, arg_keyid, arg_pars,...
+                            ints_ii, arg_xid);
+
+            %%% Wait for ITI
+            WaitSecs('YieldSecs', 0.5);
         end
 
-        %%% Display a trial
-        if (rand > 0.5)
-            stim_id = 2;
-        else
-            stim_id = 5;
+        %%% Iterate over nct trials and update estimate at each step
+        for (ii = 0:arg_pars.nct-1)
+            %%% Choose a random threshold but circulate over all of them
+            test_ints = ints_perms(1); % randomly select one threshold
+            if (numel(ints_perms) == 1)
+                ints_perms = randperm(nints); % next permutation
+            else
+                ints_perms = ints_perms(2:end); % used first element, so remove
+            end
+
+            %%% Sample the intensity to be displayed from posterior
+            if (use_quantile) % sample based on Quantile
+                ints_ii = QuestQuantile(weib, arg_pars.pthresh(test_ints));
+            else % sample based on mean and then interpolated from pf
+                mean_ii = QuestMean(weib);
+                pf = QuestP(weib, allx-mean_ii);
+                uniq=find(diff(pf));
+                ints_ii = interp1([pf(uniq), 1], [allx(uniq), max_est+1],...
+                    arg_pars.pthresh(test_ints));
+            end
+
+            %%% Ensure samples are within range
+            if (ints_ii < min_est)
+                ints_ii = min_est; % 
+            elseif (ints_ii > max_est)
+                ints_ii = max_est;
+            end
+
+            %%% Record the intensities
+            ints_vec{test_ints} = [ints_vec{test_ints}, ints_ii];
+
+            %%% Display stimulus trial
+            if (rand > 0.5)
+                stim_id = 2;
+            else
+                stim_id = 5;
+            end
+            dec = calib_trial(arg_wip, arg_wrp, stim_id, arg_keyid, arg_pars,...
+                            ints_ii, arg_xid);
+
+            %%% Update Quest's estimate based on response
+            if (dec == stim_id)
+                resp_ii = 1;
+            else
+                resp_ii = 0;
+            end
+            weib = QuestUpdate(weib, ints_ii, resp_ii);
+
+            %%% Record the responses
+            resp_vec{test_ints} = [resp_vec{test_ints} resp_ii];
+
+            %%% Wait for ITI
+            WaitSecs('YieldSecs', 0.5);
         end
-        dec = calib_trial(arg_wip, arg_wrp, stim_id, arg_keyid, arg_pars,...
-                          ints_ii, arg_xid);
 
-        %%% Wait for ITI
-        WaitSecs('YieldSecs', 0.5);
-    end
+        if (jj == 1) % Mandatory break between calibration blocks
+            DrawFormattedText(arg_wip,...
+                                ['You are half-way through the first block.\n\nPlease take a 30 sec break. The experiment will automatically proceed after after this time.'],...
+                                'center',...
+                                'center',...
+                                BlackIndex(arg_wip),...
+                                60, 0, 0, 1.5);
+            Screen('Flip', arg_wip);
+            WaitSecs('YieldSecs', 30);
 
-    %%% Iterate over nct trials and update estimate at each step
-    for (ii = 0:arg_pars.nct-1)
-        %%% Choose a random threshold but circulate over all of them
-        test_ints = ints_perms(1); % randomly select one threshold
-        if (numel(ints_perms) == 1)
-            ints_perms = randperm(nints); % next permutation
-        else
-            ints_perms = ints_perms(2:end); % used first element, so remove
+            Screen('Flip', arg_wip);
+            WaitSecs('YieldSecs', 1);
+            DrawFormattedText(arg_wip,...
+                                ['Press n to proceed.'],...
+                                'center',...
+                                'center',...
+                                BlackIndex(arg_wip),...
+                                60, 0, 0, 1.5);
+            Screen('Flip', arg_wip);
+            WaitSecs('YieldSecs', 1);
+            [KeyIsDown, endrt, KeyCode]=KbCheck;
+            while(KeyCode(KbName('n')) ~= 1)
+                [KeyIsDown, endrt, KeyCode]=KbCheck;
+            end
+            Screen('Flip', arg_wip);
+            WaitSecs('YieldSecs', 0.5);
         end
-
-        %%% Sample the intensity to be displayed from posterior
-        if (use_quantile) % sample based on Quantile
-            ints_ii = QuestQuantile(weib, arg_pars.pthresh(test_ints));
-        else % sample based on mean and then interpolated from pf
-            mean_ii = QuestMean(weib);
-            pf = QuestP(weib, allx-mean_ii);
-            uniq=find(diff(pf));
-            ints_ii = interp1([pf(uniq), 1], [allx(uniq), max_est+1],...
-                arg_pars.pthresh(test_ints));
-        end
-
-        %%% Ensure samples are within range
-        if (ints_ii < min_est)
-            ints_ii = min_est; % 
-        elseif (ints_ii > max_est)
-            ints_ii = max_est;
-        end
-
-        %%% Record the intensities
-        ints_vec{test_ints} = [ints_vec{test_ints}, ints_ii];
-
-        %%% Display stimulus trial
-        if (rand > 0.5)
-            stim_id = 2;
-        else
-            stim_id = 5;
-        end
-        dec = calib_trial(arg_wip, arg_wrp, stim_id, arg_keyid, arg_pars,...
-                          ints_ii, arg_xid);
-
-        %%% Update Quest's estimate based on response
-        if (dec == stim_id)
-            resp_ii = 1;
-        else
-            resp_ii = 0;
-        end
-        weib = QuestUpdate(weib, ints_ii, resp_ii);
-
-        %%% Record the responses
-        resp_vec{test_ints} = [resp_vec{test_ints} resp_ii];
-
-        %%% Wait for ITI
-        WaitSecs('YieldSecs', 0.5);
     end
 
     %%% Aggregate all intensity and response vectors

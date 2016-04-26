@@ -25,8 +25,8 @@ function out_pars = init_params()
     %%% Time-related parameters
     out_pars.mindt = 0.40;
     out_pars.isi = 0.05;
-    out_pars.iti_c = 2;
-    out_pars.iti_ic = 5;
+    out_pars.iti_c = 1;
+    out_pars.iti_ic = 2;
     out_pars.tblock = 10; % duration of each block
 
     %%% Calibration related parameters
@@ -39,7 +39,7 @@ function out_pars = init_params()
     out_pars.tcalib = 1; % duration of calibration trial
 
     %%% Warm-up trials parameters
-    out_pars.nwup = 10; % number of warm-up trials
+    out_pars.nwup = [10 5]; % warm-up trials in each calibration block
     out_pars.wup.min_con = 0.5; % minimum contrast during warm-up
     out_pars.wup.max_con = 1.5; % maximum contrast during warm-up
     out_pars.wup.min_sd = 0.05; % minimum contrast during warm-up

@@ -17,12 +17,12 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         %%% Linearize monitor
 %        oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, pars, key_id);
+%        disp_intro(wip, wrp, pars, key_id);
 
-        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
+%        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
-%        xvals = [0.35, 0.6, 1.0];
-%        nc = 5; nic = 3;
+        xvals = [0.35, 0.6, 1.0];
+        nc = 5; nic = 3;
         %%% End: DEBUG
 
         new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con
@@ -33,8 +33,8 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         for ii = 1:new_pars.nblocks
             [dtseq, decseq, cicseq, nlseq, stimseq] =...
                 block(wip, wrp, key_id, new_pars);
-            nc = sum(cicseq == true);
-            nic = sum(cicseq == false);
+            nc = sum(cicseq == 1);
+            nic = sum(cicseq == 0);
             disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_sno);
 
             %%% Store everything
@@ -108,11 +108,13 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
             Screen('TextFont',wip, 'Courier New');
 %        Screen('TextFont',wip, '-urw-urw bookman l-medium-r-normal--0-0-0-0-p-0-koi8-r');
 %        Screen('TextFont',wip, '-adobe-helvetica-bold-r-normal--25-180-100-100-p-138-iso10646-1');
+            Screen('TextSize', wip, 16);
+            Screen('TextStyle', wip, 0);
         catch
             Screen('TextFont',wip, '-adobe-courier-bold-r-normal--25-180-100-100-m-150-iso8859-1');
+            Screen('TextSize', wip, 20);
+            Screen('TextStyle', wip, 0);
         end
-        Screen('TextSize', wip, 16);
-        Screen('TextStyle', wip, 0);
         priorityLevel=MaxPriority(wip);
         Priority(priorityLevel);
 
@@ -236,7 +238,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     WaitSecs('YieldSecs', 0.5);
 
     DrawFormattedText(arg_wip,...
-                        'SESSION 1:\n\nThis session is split into a number of blocks. Each block lasts around five minutes.\n\nDuring each block you will be shown a series of simple videos and your task is to decide what you saw in the video.\n\nYou should use the Left and Right arrow keys to indicate your response.\n\nPress n to do an example.',...
+                        'SESSION 1:\n\nThis session is split into a number of blocks. Each block lasts around five minutes.\n\nDuring each block you will be shown a series of simple videos and your task is to decide what you saw in the video.\n\nYou should use the Left and Right arrow keys to indicate your response.\n\nPress any key to do an example.',...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -244,7 +246,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     Screen('Flip', arg_wip);
     WaitSecs('YieldSecs', 2);
     [KeyIsDown, endrt, KeyCode]=KbCheck;
-    while(KeyCode(KbName('n')) ~= 1)
+    while(~KeyIsDown)
         [KeyIsDown, endrt, KeyCode]=KbCheck;
     end
 
@@ -256,7 +258,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 2.5, 2);
 
     DrawFormattedText(arg_wip,...
-    ['Great! In the first block, you will see each video for ', num2str(arg_pars.tcalib), ' sec and then be asked for a response.\n\nThe images in some videos may be quite difficult to see. This helps us calibrate your vision.\n\nIn each case, try and be as *accurate* as possible, indicating your best estimate.\n\nPress n to start the experiment.'],...
+    ['Great! In the first block, you will see each video for ', num2str(arg_pars.tcalib), ' sec and then be asked for a response.\n\nThe images in some videos may seem nearly impossible to see. In these cases, give us your best estimate of what you saw. These cases helps us calibrate your vision.\n\nIn each case, try and be as *accurate* as possible.\n\nPress n to start the experiment.'],...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -314,7 +316,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
                         BlackIndex(arg_wip),...
                         60, 0, 0, 1.5);
     DrawFormattedText(arg_wip,...
-                        'Press "Space" to start',...
+                        'Press any key to start',...
                         'center',...
                         cy*2 - 50,...
                         BlackIndex(arg_wip),...
@@ -322,7 +324,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     Screen('Flip', arg_wip);
     WaitSecs('YieldSecs', 1);
     [KeyIsDown, endrt, KeyCode]=KbCheck;
-    while(KeyCode(KbName('space')) ~= 1)
+    while(~KeyIsDown)
         [KeyIsDown, endrt, KeyCode]=KbCheck;
     end
 
@@ -359,7 +361,7 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
 
     %%% Message: Part1 -> Part2
     DrawFormattedText(arg_wip,...
-                        ['In the previous block, each video was shown for ', num2str(arg_pars.tcalib), ' sec. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* and as *accurately* as you can.\n\nPress Space to see an example video. When you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
+                        ['In the previous block, each video was shown for ', num2str(arg_pars.tcalib), ' sec. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* and as *accurately* as you can.\n\nPress any key to do some examples. In each case, when you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -367,7 +369,7 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
     Screen('Flip', arg_wip);
     WaitSecs('YieldSecs', 3);
     [KeyIsDown, endrt, KeyCode]=KbCheck;
-    while(KeyCode(KbName('space')) ~= 1)
+    while(~KeyIsDown)
         [KeyIsDown, endrt, KeyCode]=KbCheck;
     end
 
@@ -375,44 +377,35 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
 
     WaitSecs('YieldSecs', 0.5);
 
-    repeat_example = true;
-    while(repeat_example == true)
+    for(ii = 1:arg_pars.neg)
         %%% Display an example trial
         if (rand > 0.5)
             stim_id = 2;
         else
             stim_id = 5;
         end
-        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, 3, arg_keyid, arg_pars);
-
-        %%% Display result of trial
-        if (dec == stim_id)
-            dec_string = 'correct';
-            beg_string = 'Great! ';
+        if (rand > 0.5)
+            level = 3; % easy
         else
-            dec_string = 'incorrect';
-            beg_string = '';
+            level = 0; % v easy
         end
-        DrawFormattedText(arg_wip,...
-                            [beg_string, 'Your response was ', int2str(dec), '. This response was ', dec_string, '. You took ', num2str(dt, 3), ' secs to make this decision.\n\nIf you have any questions you can ask the experimenter now.\n\nPress "y" if you would like to do another example or "n" if you would like to start.'],...
-                            'center',...
-                            'center',...
-                            BlackIndex(arg_wip),...
-                            60, 0, 0, 1.5);
-        Screen('Flip', arg_wip);
-        WaitSecs('YieldSecs', 2);
-        [KeyIsDown, endrt, KeyCode]=KbCheck;
-        while(KeyCode(KbName('n')) ~= 1 && KeyCode(KbName('y')) ~= 1 )
-            [KeyIsDown, endrt, KeyCode]=KbCheck;
-        end
-        if(KeyCode(KbName('n')) == 1)
-            repeat_example = false;
-        end
-
-        Screen('Flip', arg_wip);
-
-        WaitSecs('YieldSecs', 0.5);
+        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars);
+        iti_norwd(arg_wip, arg_wrp, stim_id, dec, dt, arg_pars);
     end
+    DrawFormattedText(arg_wip,...
+                      ['If you have any questions you can ask the experimenter now.\n\nPress any key when you are ready to start.'],...
+                        'center',...
+                        'center',...
+                        BlackIndex(arg_wip),...
+                        70, 0, 0, 1.5);
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 1);
+    [KeyIsDown, endrt, KeyCode]=KbCheck;
+    while(~KeyIsDown)
+        [KeyIsDown, endrt, KeyCode]=KbCheck;
+    end
+    Screen('Flip', arg_wip);
+    WaitSecs('YieldSecs', 0.5);
 
 end
 
@@ -465,7 +458,7 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
                             BlackIndex(arg_wip),...
                             60, 0, 0, 1.5);
         DrawFormattedText(arg_wip,...
-                            'Press "Space" to start',...
+                            'Press any key to start',...
                             'center',...
                             cy*2 - 50,...
                             BlackIndex(arg_wip),...
@@ -473,7 +466,7 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
         Screen('Flip', arg_wip);
         WaitSecs('YieldSecs', 1);
         [KeyIsDown, endrt, KeyCode]=KbCheck;
-        while(KeyCode(KbName('space')) ~= 1)
+        while(~KeyIsDown)
             [KeyIsDown, endrt, KeyCode]=KbCheck;
         end
         Screen('Flip', arg_wip);
@@ -563,7 +556,7 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
                             BlackIndex(arg_wip),...
                             60, 0, 0, 1.5);
         DrawFormattedText(arg_wip,...
-                            'Press "Space" to start',...
+                            'Press any key to start',...
                             'center',...
                             cy*2 - 50,...
                             BlackIndex(arg_wip),...
@@ -571,7 +564,7 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
         Screen('Flip', arg_wip);
         WaitSecs('YieldSecs', 1);
         [KeyIsDown, endrt, KeyCode]=KbCheck;
-        while(KeyCode(KbName('space')) ~= 1)
+        while(~KeyIsDown)
             [KeyIsDown, endrt, KeyCode]=KbCheck;
         end
         Screen('Flip', arg_wip);

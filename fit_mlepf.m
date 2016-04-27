@@ -26,10 +26,10 @@ function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
     %%% Define constraint on parameters for maximization
     %%% Primarily for lapse parameter
     A = []; Aeq = []; b = []; beq = []; nonlcon = []; % don't use these
-    lb_pars = [0, 0.01, 0.01]; % low-bound
-    ub_pars = [0.2, 10, 10]; % upper-bound
+    lb_pars = [0, 0.001, 0.001]; % low-bound
+    ub_pars = [0.2, 100, 100]; % upper-bound
     opt_pars = fminsearchbnd(@nllpf, init_pars, lb_pars, ub_pars,...
-        options, data);
+        options, data)
     if (opt_pars(1) > 0.1)
         error('Subject lapse errors too large');
     end

@@ -17,9 +17,15 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     lumax = arg_pars.lumax;
     isi = arg_pars.isi;
     mu_trial = arg_pars.mu;
-    con = arg_pars.con(arg_level);
-    sd_mu_trial = arg_pars.sd_mu(arg_level);
-    sd_sd_trial = arg_pars.sd_sd(arg_level);
+    if (arg_level ~= 0)
+        con = arg_pars.con(arg_level);
+        sd_mu_trial = arg_pars.sd_mu(arg_level);
+        sd_sd_trial = arg_pars.sd_sd(arg_level);
+    else % indicates high contrast trial
+        con = arg_pars.con(end) + 1.0;
+        sd_mu_trial = arg_pars.sd_mu(1); %%% TODO: Change for noise xpt
+        sd_sd_trial = arg_pars.sd_sd(1);
+    end
 
     %%% Display background and fixation cross
 %    texbk = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, 0, thick, con, 0, 0,...

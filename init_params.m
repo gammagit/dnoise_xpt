@@ -3,6 +3,8 @@ function out_pars = init_params()
     %%% Experiment parameters
     out_pars.nblocks = 2; % number of blocks
     out_pars.ntrials = 10; % number of trials in block (if not fixed-time)
+    out_pars.neg = 10; % number of example trials before RT blocks
+    out_pars.pveasy = 0.10; % probability that trial will be very easy
 
     %%% Signal parameters
     out_pars.con = [0.45 1.0 1.90];
@@ -25,17 +27,17 @@ function out_pars = init_params()
     %%% Time-related parameters
     out_pars.mindt = 0.40;
     out_pars.isi = 0.05;
-    out_pars.iti_c = 1;
-    out_pars.iti_ic = 2;
+    out_pars.iti_c = 2;
+    out_pars.iti_ic = 5;
     out_pars.tblock = 10; % duration of each block
 
     %%% Calibration related parameters
-    out_pars.nct = 8; % number of trials to calibrate
+    out_pars.nct = 52; % number of trials to calibrate
     out_pars.con.init = 0.4; % initial value of contrast for Quest
     out_pars.con.calib = 0.70; % contrast if noise is being calibrated
     out_pars.sd_mu.init = 0.10; % initial value of noise for Quest
     out_pars.sd_mu.calib = 0.10; % noise if contrast is being calibrated
-    out_pars.pthresh = [0.60 0.75 0.90 0.9999]; % psychometric thresholds for testing
+    out_pars.pthresh = [0.60 0.75 0.90 0.99]; % psychometric thresholds for testing
     out_pars.tcalib = 1; % duration of calibration trial
 
     %%% Warm-up trials parameters

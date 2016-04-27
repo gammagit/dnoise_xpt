@@ -33,7 +33,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
     ctseq = []; % vector containing times (in block) for correct decisions
     out_snrseq = [];
     out_cicseq = []; % vector containing correct / incorrect
-    ii = 1;
+    ii = 1; jj = 1;
     total_trials = arg_pars.ntrials;
 %    while ((GetSecs - tzero_block) <= arg_pars.tblock)
     while (ii <= total_trials)
@@ -43,19 +43,23 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
             stim_id = 5;
         end
 
-        %%% Randomly sample SNR level -- not using datasample: >R2011b
-%        level = datasample(1:numel(arg_pars.con), 1); % sample choose SNR level
-        randorder = randperm(numel(arg_pars.con));
-        level = randorder(1);
+        %%% Choose SNR either from psychometric curve or really easy trial
+        %%% These easy trials help participants minimise motor mapping delay
+        if (rand < arg_pars.pveasy) 
+            level = 0; % trial.m uses level=0 to set very easy contrast / noise
+        else %%% Randomly sample SNR level
+            randorder = randperm(numel(arg_pars.con));
+            level = randorder(1);
+        end
         out_snrseq = [out_snrseq level];
 
         %%% Simulate trial
         [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars);
         if (stim_id == dec)
-            correct = true;
+            correct = 1;
             ctseq = [ctseq GetSecs-tzero_block];
         else
-            correct = false;
+            correct = 0;
         end
 
         %%% Diplay ITI
@@ -65,10 +69,13 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         %%% If responded too quickly, then add a trial
         if (dt >= arg_pars.mindt)
             ii = ii + 1;
-            out_rtseq = [out_rtseq dt];
-            out_decseq = [out_decseq dec];
-            out_cicseq = [out_cicseq correct];
-            out_stims{ii-1} = stims;
+        else
+            correct = -1; % too short
         end
+        out_rtseq = [out_rtseq dt];
+        out_decseq = [out_decseq dec];
+        out_cicseq = [out_cicseq correct];
+        out_stims{jj} = stims;
+        jj = jj + 1;
     end
 end

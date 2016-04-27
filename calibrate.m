@@ -140,7 +140,7 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
             Screen('Flip', arg_wip);
             WaitSecs('YieldSecs', 1);
             DrawFormattedText(arg_wip,...
-                                ['Press n to proceed.'],...
+                                ['Press any key to proceed.'],...
                                 'center',...
                                 'center',...
                                 BlackIndex(arg_wip),...
@@ -148,7 +148,7 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
             Screen('Flip', arg_wip);
             WaitSecs('YieldSecs', 1);
             [KeyIsDown, endrt, KeyCode]=KbCheck;
-            while(KeyCode(KbName('n')) ~= 1)
+            while(~KeyIsDown)
                 [KeyIsDown, endrt, KeyCode]=KbCheck;
             end
             Screen('Flip', arg_wip);
@@ -208,7 +208,7 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
         %%% Plot proportion of responses
         resp0 = all_ints(find(all_resps == 0));
         resp1 = all_ints(find(all_resps == 1));
-        edges = linspace(min_est, 1.2, 10);
+        edges = linspace(min_est, 1.0, 20);
         bins_resp0 = histc(resp0, edges);
         bins_resp1 = histc(resp1, edges);
         sum_bins = bins_resp1 + bins_resp0

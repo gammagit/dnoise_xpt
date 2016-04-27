@@ -9,7 +9,7 @@ function iti(arg_wip, arg_wrp, arg_tid, arg_dec, arg_dt, arg_pars)
 
     if (arg_dt < arg_pars.mindt)
         message = ['Response was too quick!\n\nTrial will be repeated.'];
-        interval = arg_pars.iti_c - 1;
+        interval = arg_pars.iti_ic - 1;
     else
         if (arg_tid == arg_dec)
             message = ['Correct\n\nResponse time = ', num2str(arg_dt, 2), ' secs.'];

@@ -16,7 +16,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
 
     %%% Display background and then fixation cross
 %    stimtex_bk = gen_stimtex(arg_wip, arg_wrp, arg_pars.blobsize,...
-%        arg_pars.stimsize, 0, arg_pars.thick, arg_pars.con,...
+%        arg_pars.stimsize, 0, arg_pars.thick, arg_pars.con.var,...
 %        0, 0, arg_pars.lumbk, arg_pars.lumax); % using dummy mu & sd
 %    Screen('DrawTexture', arg_wip, stimtex_bk);
 %    Screen('Flip', arg_wip);
@@ -48,7 +48,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         if (rand < arg_pars.pveasy) 
             level = 0; % trial.m uses level=0 to set very easy contrast / noise
         else %%% Randomly sample SNR level
-            randorder = randperm(numel(arg_pars.con));
+            randorder = randperm(numel(arg_pars.con.var));
             level = randorder(1);
         end
         out_snrseq = [out_snrseq level];

@@ -15,14 +15,14 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         pars = init_params();
 
         %%% Linearize monitor
-%        oldgfxlut = linearize_monitor(wip);
+        oldgfxlut = linearize_monitor(wip);
 
-%        disp_intro(wip, wrp, pars, key_id);
+        disp_intro(wip, wrp, pars, key_id);
 
-%        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
+        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
-        xvals = [0.35, 0.6, 1.0];
-        nc = 5; nic = 3;
+%         xvals = [0.35, 0.6, 1.0];
+%         nc = 5; nic = 3;
         %%% End: DEBUG
 
         new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con

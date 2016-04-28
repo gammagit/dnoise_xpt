@@ -18,13 +18,13 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     isi = arg_pars.isi;
     mu_trial = arg_pars.mu;
     if (arg_level ~= 0)
-        con = arg_pars.con(arg_level);
-        sd_mu_trial = arg_pars.sd_mu(arg_level);
-        sd_sd_trial = arg_pars.sd_sd(arg_level);
+        con = arg_pars.con.var(arg_level);
+        sd_mu_trial = arg_pars.sd_mu.var(arg_level);
+        sd_sd_trial = arg_pars.sd_sd.var(arg_level);
     else % indicates high contrast trial
-        con = arg_pars.con(end) + 1.0;
-        sd_mu_trial = arg_pars.sd_mu(1); %%% TODO: Change for noise xpt
-        sd_sd_trial = arg_pars.sd_sd(1);
+        con = arg_pars.con.var(end) + 1.0;
+        sd_mu_trial = arg_pars.sd_mu.var(1); %%% TODO: Change for noise xpt
+        sd_sd_trial = arg_pars.sd_sd.var(1);
     end
 
     %%% Display background and fixation cross

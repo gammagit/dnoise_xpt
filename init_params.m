@@ -7,14 +7,14 @@ function out_pars = init_params()
     out_pars.pveasy = 0.10; % probability that trial will be very easy
 
     %%% Signal parameters
-    out_pars.con = [0.45 1.0 1.90];
+    out_pars.con.var = [0.45 1.0 1.90]; % contrast in variable signal xpt
     out_pars.con.const = [0.50 0.50 0.50]; % contrast in variable noise xpt
 
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame
-    out_pars.sd_mu = [0.05 0.08 0.10]; % mean sd frame-to-frame
+    out_pars.sd_mu.var = [0.05 0.08 0.10]; % mean sd frame-to-frame; var noise
     out_pars.sd_mu.const = [0.10 0.10 0.10]; % constant noise expt, mean sd
-    out_pars.sd_sd = [0 0 0]; % sd of sd frame-to-frame
+    out_pars.sd_sd.var = [0 0 0]; % sd of sd frame-to-frame; var noise
     out_pars.sd_sd.const = [0 0 0];%0.03; % constant noise expt, sd sd
 
     %%% Display parameters

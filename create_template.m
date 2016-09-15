@@ -2,8 +2,7 @@ function out_T = create_template(arg_winsize, arg_tsize, arg_thick, arg_con,...
     arg_tid)
 %%% CREATE_TEMPLATE returns matrices containing pixel values for two templates
 %%%
-%%% out_T2 = matrix containing pixel values for template "2"
-%%% out_T5 = matrix containing pixel values for template "5"
+%%% out_T = matrix containing pixel values for template "2"/"5"
 %%%
 %%% arg_winsize = matrix containing size of window ([nrows, ncols])
 %%% arg_tsize = matrix containing size of template ([nrows, ncols])

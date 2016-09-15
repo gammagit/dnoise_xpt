@@ -4,7 +4,7 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
 %%% arg_type = type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
 %%% arg_sno = session-number (1/2)
     
-    try
+%%%    try
         %%% Assign unique id to subject
         subid = now; % Unique subject number based on current date & time
 
@@ -15,14 +15,14 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         pars = init_params();
 
         %%% Linearize monitor
-        oldgfxlut = linearize_monitor(wip);
+%        oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, pars, key_id);
+%        disp_intro(wip, wrp, pars, key_id);
 
-        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
+%        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
-%         xvals = [0.35, 0.6, 1.0];
-%         nc = 5; nic = 3;
+         xvals = [0.35, 0.6, 1.0];
+         nc = 5; nic = 3;
         %%% End: DEBUG
 
         new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con
@@ -67,27 +67,27 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         Screen('Preference', 'SuppressAllWarnings', oldWL);
         Priority(0);
 
-    catch
-        %%% Error Handling 
-        % The try-catch block ensures that Screen will restore the display and return us
-        % to the MATLAB prompt even if there is an error in our code.  Without this try-catch
-        % block, Screen could still have control of the display when MATLAB throws an error, in
-        % which case the user will not see the MATLAB prompt.
-        if (exist('oldgfxlut')) % if linearized monitor, then reset
-            reset_monitor(wip, oldgfxlut);
-        end
-        Screen('CloseAll');
-
-        % Restores the mouse cursor.
-        ShowCursor;
-        
-        % Restore preferences
-        Screen('Preference', 'VisualDebugLevel', oldDL);
-        Screen('Preference', 'SuppressAllWarnings', oldWL);
-
-        % We throw the error again so the user sees the error description.
-        psychrethrow(psychlasterror);
-    end
+%%%    catch
+%%%        %%% Error Handling 
+%%%        % The try-catch block ensures that Screen will restore the display and return us
+%%%        % to the MATLAB prompt even if there is an error in our code.  Without this try-catch
+%%%        % block, Screen could still have control of the display when MATLAB throws an error, in
+%%%        % which case the user will not see the MATLAB prompt.
+%%%        if (exist('oldgfxlut')) % if linearized monitor, then reset
+%%%            reset_monitor(wip, oldgfxlut);
+%%%        end
+%%%        Screen('CloseAll');
+%%%
+%%%        % Restores the mouse cursor.
+%%%        ShowCursor;
+%%%        
+%%%        % Restore preferences
+%%%        Screen('Preference', 'VisualDebugLevel', oldDL);
+%%%        Screen('Preference', 'SuppressAllWarnings', oldWL);
+%%%
+%%%        % We throw the error again so the user sees the error description.
+%%%        psychrethrow(psychlasterror);
+%%%    end
 end
 
 
@@ -139,12 +139,12 @@ function out_pars = reconfig_pars(arg_type, arg_pars, arg_xvals)
     %%% high and low contrast
     switch arg_type 
     case 1 % constant contrast, but variable noise
-        out_pars.con = out_pars.con.const;
-        out_pars.sd_mu = arg_xvals;
+        out_pars.con.var = out_pars.con.const;
+        out_pars.sd_mu.var = arg_xvals;
     case 2 % variable contrast, but constant noise
-        out_pars.con = arg_xvals;
-        out_pars.sd_mu = out_pars.sd_mu.const;
-        out_pars.sd_sd = out_pars.sd_sd.const;
+        out_pars.con.var = arg_xvals;
+        out_pars.sd_mu.var = out_pars.sd_mu.const;
+        out_pars.sd_sd.var = out_pars.sd_sd.const;
     end
 end
 

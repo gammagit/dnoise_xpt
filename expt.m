@@ -21,7 +21,7 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
 
 %        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
-         xvals = [0.35, 0.6, 1.0];
+         xvals = [0.30, 0.6, 0.8];
          nc = 5; nic = 3;
         %%% End: DEBUG
 
@@ -108,8 +108,8 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
             Screen('TextFont',wip, 'Courier New');
 %        Screen('TextFont',wip, '-urw-urw bookman l-medium-r-normal--0-0-0-0-p-0-koi8-r');
 %        Screen('TextFont',wip, '-adobe-helvetica-bold-r-normal--25-180-100-100-p-138-iso10646-1');
-            Screen('TextSize', wip, 16);
-            Screen('TextStyle', wip, 0);
+            Screen('TextSize', wip, 24);
+            Screen('TextStyle', wip, 1);
         catch
             Screen('TextFont',wip, '-adobe-courier-bold-r-normal--25-180-100-100-m-150-iso8859-1');
             Screen('TextSize', wip, 20);

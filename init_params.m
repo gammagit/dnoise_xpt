@@ -2,7 +2,7 @@ function out_pars = init_params()
 
     %%% Experiment parameters
     out_pars.nblocks = 2; % number of blocks
-    out_pars.ntrials = 5; % number of trials in block (if not fixed-time)
+    out_pars.ntrials = 20; % number of trials in block (if not fixed-time)
     out_pars.neg = 10; % number of example trials before RT blocks
     out_pars.pveasy = 0.10; % probability that trial will be very easy
 

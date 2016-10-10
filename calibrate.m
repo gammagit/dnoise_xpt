@@ -40,7 +40,7 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
 
     %%% Create structure for Weibull psychometric function using Quest
     qthresh = arg_pars.pthresh(2);
-    qbeta=3; qdelta=0.15; qgamma=0.5; % for 2AFC
+    qbeta=3; qdelta=0.20; qgamma=0.5; % for 2AFC
     weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
 
     %%% Create a vector of domain of intensity (for interpolation)

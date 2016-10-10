@@ -44,7 +44,7 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     out_stim.mu = []; % mean noise during each frame
     out_stim.sd = []; % sd of noise during each frame
     out_stim.con = []; % contrast during each frame
-
+    
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
     while(~(any(pressedCode == KbName('Left')) ||...

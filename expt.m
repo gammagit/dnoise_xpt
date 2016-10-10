@@ -15,14 +15,17 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         pars = init_params();
 
         %%% Linearize monitor
-%        oldgfxlut = linearize_monitor(wip);
+        oldgfxlut = linearize_monitor(wip);
 
-%        disp_intro(wip, wrp, pars, key_id);
+        disp_intro(wip, wrp, pars, key_id);
 
-%        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
+        %%% Test flip interval
+%        flipint = Screen('GetFlipInterval', wip, 50)
+
+        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
-         xvals = [0.30, 0.6, 0.8];
-         nc = 5; nic = 3;
+%          xvals = [0.30, 0.6, 0.8];
+%          nc = 5; nic = 3;
         %%% End: DEBUG
 
         new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con
@@ -97,13 +100,25 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
 %%% wip = window pointer
 %%% wrp = window rectangle pointer
 
+        %%% For Datapixx
+        PsychImaging('PrepareConfiguration');
+        PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
+        PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
+        PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
+
         oldWL = Screen('Preference', 'SuppressAllWarnings', 1);
         oldDL = Screen('Preference', 'VisualDebugLevel', 3);
 %        PsychDebugWindowConfiguration(0,0.90) % Control opacity (for testing)
 %        Screen('Preference','Verbosity', 6)
         whichScreen = max(Screen('Screens')); % Open Screen on last monitor
         HideCursor;
-        [wip, wrp] = Screen('OpenWindow', whichScreen);
+        
+        %%% For Datapixx (otherwise replace PsychImaging with Screen cmd
+        oldVerbosity = Screen('Preference', 'Verbosity', 1);   % Don't log the GL stuff
+        [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
+%         [wip, wrp] = Screen('OpenWindow', whichScreen);
+        Screen('Preference', 'Verbosity', oldVerbosity);
+        
         try
             Screen('TextFont',wip, 'Courier New');
 %        Screen('TextFont',wip, '-urw-urw bookman l-medium-r-normal--0-0-0-0-p-0-koi8-r');
@@ -151,14 +166,26 @@ end
 
 function oldgfxlut = linearize_monitor(wip)
 
-        GAMMA=2.1;
+        GAMMA=2.87;
         screennr=0; % use main screen
         oldgfxlut = Screen('ReadNormalizedGammatable', screennr);
-
-        clut(1:256,1) = linspace(0,1,256)';
+        
+        %First load a linear ramp into the graphics card's LUT.
+        Screen('LoadNormalizedGammaTable', wip, linspace(0,1,256)'*ones(1,3));
+        
+        lmin = 0;
+        lmax = 1;
+        clut(1:256,1) = linspace(lmin, lmax, 256)';
         clut = clut.^ (1 / GAMMA);
+        %clut(1:16384,1) = linspace(lmin, lmax, 16384)';
         clut = repmat(clut,1,3);
-        Screen('LoadNormalizedGammaTable', wip, clut);
+        
+        PsychColorCorrection('SetLookupTable', wip, clut); % Set up the CLUT for Psychtoolbox
+
+%         clut(1:256,1) = linspace(0,1,256)';
+%         clut = clut.^ (1 / GAMMA);
+%         clut = repmat(clut,1,3);
+%         Screen('LoadNormalizedGammaTable', wip, clut);
 end
 
 
@@ -361,11 +388,11 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
 
     %%% Message: Part1 -> Part2
     DrawFormattedText(arg_wip,...
-                        ['In the previous block, each video was shown for ', num2str(arg_pars.tcalib), ' sec. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* and as *accurately* as you can.\n\nPress any key to do some examples. In each case, when you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
+                        ['In the previous block, each video was shown for ', num2str(arg_pars.tcalib), ' sec. In the rest of the experiment, this duration will not be fixed. Instead, you can watch each video for as long as you like, before making a decision.\n\nTry and make these decisions as *quickly* AS WELL AS as *accurately* as you can.\n\nPress any key to do some examples. In each case, when you are ready to make a decision, just use the LEFT or RIGHT arrow key.'],...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
-                        70, 0, 0, 1.5);
+                        60, 0, 0, 1.5);
     Screen('Flip', arg_wip);
     WaitSecs('YieldSecs', 3);
     [KeyIsDown, endrt, KeyCode]=KbCheck;
@@ -397,7 +424,7 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
-                        70, 0, 0, 1.5);
+                        60, 0, 0, 1.5);
     Screen('Flip', arg_wip);
     WaitSecs('YieldSecs', 1);
     [KeyIsDown, endrt, KeyCode]=KbCheck;

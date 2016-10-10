@@ -16,6 +16,6 @@ end
 function out_Blob = convert_lum(arg_Blob, arg_lumbk, arg_lumax)
 %%% CONVERT_LUM converts matrix of normalised stimulus values into luminances.
 %%%
-    mid_lum = floor(arg_lumax/2);
+    mid_lum = arg_lumax/2;
     out_Blob = (mid_lum .* arg_Blob) + arg_lumbk;
 end

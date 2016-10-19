@@ -17,13 +17,14 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         %%% Linearize monitor
         oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, pars, key_id);
+%         disp_intro(wip, wrp, pars, key_id);
 
         %%% Test flip interval
 %        flipint = Screen('GetFlipInterval', wip, 50)
 
         [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
+        xvals
 %          xvals = [0.30, 0.6, 0.8];
 %          nc = 5; nic = 3;
         %%% End: DEBUG
@@ -560,7 +561,10 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
                             BlackIndex(arg_wip),...
                             60, 0, 0, 1.5);
         Screen('Flip', arg_wip);
-        WaitSecs('YieldSecs', 30);
+        %%% DEBUG
+        WaitSecs('YieldSecs', 3);
+        %%% DEBUG
+%         WaitSecs('YieldSecs', 30);
 
         texeg = Screen('MakeTexture', arg_wip, stimFrame);
         Screen('DrawTexture', arg_wip, texeg);

@@ -28,7 +28,7 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     end
 
     %%% DEBUG
-    sd_mu_trial
+%     sd_mu_trial
     %%% DEBUG
     
     %%% Display background and fixation cross

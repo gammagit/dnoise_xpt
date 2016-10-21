@@ -25,7 +25,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
 %    WaitSecs('YieldSecs', 1);
 %    Screen('DrawTexture', arg_wip, stimtex_bk);
 %    WaitSecs('YieldSecs', 0.5);
-    [VBLTime tzero_block]=Screen('Flip', arg_wip); % Initialise start time of block
+    [VBLTime, tzero_block]=Screen('Flip', arg_wip); % Initialise start time of block
 %    WaitSecs('YieldSecs', 1);
 
     out_rtseq = []; % vector containing RTs

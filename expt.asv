@@ -17,13 +17,14 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
         %%% Linearize monitor
         oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, pars, key_id);
+%         disp_intro(wip, wrp, pars, key_id);
 
         %%% Test flip interval
 %        flipint = Screen('GetFlipInterval', wip, 50)
 
         [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
         %%% Begin: DEBUG
+        xvals
 %          xvals = [0.30, 0.6, 0.8];
 %          nc = 5; nic = 3;
         %%% End: DEBUG
@@ -321,7 +322,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     stimFrame(byi2:byf2, bxi2:bxf2) = Blob2;
     stimFrame(byi5:byf5, bxi5:bxf5) = Blob5;
 
-    texeg = Screen('MakeTexture', arg_wip, stimFrame, [], [], 2);
+    texeg = Screen('MakeTexture', argwip, stimFrame, [], [], 2);Screen('MakeTexture', arg_wip, stimFrame);
     Screen('DrawTexture', arg_wip, texeg);
 
     DrawFormattedText(arg_wip,...
@@ -463,7 +464,7 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
     stimFrame(byi5:byf5, bxi5:bxf5) = Blob5;
 
     if (arg_bid == 0)
-        texeg = Screen('MakeTexture', arg_wip, stimFrame, [], [], 2);
+        texeg = Screen('MakeTexture', arg_wip, stimFrame);
         Screen('DrawTexture', arg_wip, texeg);
 
         DrawFormattedText(arg_wip,...
@@ -561,11 +562,11 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
                             60, 0, 0, 1.5);
         Screen('Flip', arg_wip);
         %%% DEBUG
-%         WaitSecs('YieldSecs', 3);
+        WaitSecs('YieldSecs', 3);
         %%% DEBUG
-        WaitSecs('YieldSecs', 30);
+%         WaitSecs('YieldSecs', 30);
 
-        texeg = Screen('MakeTexture', arg_wip, stimFrame, [], [], 2);
+        texeg = Screen('MakeTexture', arg_wip, stimFrame);
         Screen('DrawTexture', arg_wip, texeg);
         DrawFormattedText(arg_wip,...
                             'Left',...

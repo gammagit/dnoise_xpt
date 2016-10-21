@@ -166,9 +166,9 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
                                 BlackIndex(arg_wip),...
                                 60, 0, 0, 1.5);
             Screen('Flip', arg_wip);
-%             WaitSecs('YieldSecs', 30);
+            WaitSecs('YieldSecs', 30);
             %%%DEBUG
-            WaitSecs('YieldSecs', 2);
+%             WaitSecs('YieldSecs', 2);
 
             Screen('Flip', arg_wip);
             WaitSecs('YieldSecs', 1);

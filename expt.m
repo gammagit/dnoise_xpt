@@ -23,10 +23,10 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
 %        flipint = Screen('GetFlipInterval', wip, 50)
 
         [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
-        %%% Begin: DEBUG
-%          xvals = [0.30, 0.6, 0.8];
+%         %%% Begin: DEBUG
+%          xvals = [0.33, 0.26, 0.22];
 %          nc = 5; nic = 3;
-        %%% End: DEBUG
+%         %%% End: DEBUG
 
         new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con
 
@@ -49,12 +49,6 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
             out_results{ii}.nlseq = nlseq;
             out_results{ii}.stimseq = stimseq;
         end
-
-
-%        nlseq
-%        decseq
-%        cicseq
-%        dtseq
 
         %%% Save results
         resfile_mat = ['res/', datestr(subid, 'ddmmm-HHMM'), '_', arg_subname, '.mat'];
@@ -282,7 +276,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     WaitSecs('YieldSecs', 0.5);
 
     %%% Display a calibration trial with large contrast and chosen stim
-    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 2.5, 2);
+    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 3.0, 2);
 
     DrawFormattedText(arg_wip,...
     ['Great! In the first block, you will see each video for ', num2str(arg_pars.tcalib), ' sec and then be asked for a response.\n\nThe images in some videos may seem nearly impossible to see. In these cases, give us your best estimate of what you saw. These cases helps us calibrate your vision.\n\nIn each case, try and be as *accurate* as possible.\n\nPress n to start the experiment.'],...

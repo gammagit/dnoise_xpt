@@ -26,8 +26,8 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
     else
         est = arg_pars.con.init; % Estimated variable init to con.init
         min_est = 0; % defines range for contrast
-        max_est = 3; % max contrast
-        est_sd = 0.25; % a large SD as prior
+        max_est = 3.5; % max contrast
+        est_sd = 1; % a large SD as prior
         xstring = 'contrast threshold estimates';
     end
 
@@ -45,10 +45,10 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
     qthresh = arg_pars.pthresh(2);
     if (arg_xid == 1)
         qbeta=0.25; qdelta=0.20; qgamma=0.5; % for 2AFC
-        weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma, 1, 100);
+        weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma, 1, 500);
 %         weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
     else
-        qbeta=3; qdelta=0.20; qgamma=0.5; % for 2AFC
+        qbeta=2; qdelta=0.10; qgamma=0.5; % for 2AFC
         weib = QuestCreate(est, est_sd, qthresh, qbeta, qdelta, qgamma);
     end
 
@@ -217,10 +217,12 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
 %     uniq=find(diff(pf_quest));
 %     quest_xvals = interp1(pf_quest(uniq), allx(uniq), arg_pars.pthresh(1:3));
     uniq=find(diff(pf_ml));
-    out_xvals = interp1(pf_ml(uniq), allx(uniq), arg_pars.pthresh(1:3));
-%     if (arg_xid == 1)
-%         out_xvals = sqrt(1./out_xvals); % convert precision back into sd
-%     end
+    xvals = interp1(pf_ml(uniq), allx(uniq), arg_pars.pthresh(1:3));
+    if (arg_xid == 1)
+        out_xvals = sqrt(1./xvals); % convert precision back into sd
+    else
+        out_xvals = xvals;
+    end
 
     %%% Display estimated psychometric functions and data
     if (arg_plot)
@@ -243,7 +245,7 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
 %         plot(allx(uniq), pf_quest(uniq), '-.b', out_xvals, arg_pars.pthresh(1:3), 'ob',...
 %             'MarkerSize', 7);
         hold on
-        plot(allx(uniq), pf_ml(uniq), '-r', out_xvals, arg_pars.pthresh(1:3), 'or',...
+        plot(allx(uniq), pf_ml(uniq), '-r', xvals, arg_pars.pthresh(1:3), 'or',...
             'MarkerSize', 8, 'LineWidth', 2);
 
         %%% Plot proportion of responses
@@ -252,7 +254,7 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
         if (arg_xid == 1)
             edges = linspace(min_est, max(resp1), 20);
         else
-            edges = linspace(min_est, 1.0, 20);
+            edges = linspace(min_est, max(resp1), 20);
         end
         bins_resp0 = histc(resp0, edges);
         bins_resp1 = histc(resp1, edges);

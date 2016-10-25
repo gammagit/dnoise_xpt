@@ -19,11 +19,13 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     mu_trial = arg_pars.mu;
     if (arg_level ~= 0)
         con = arg_pars.con.var(arg_level);
-        sd_mu_trial = sqrt(1/arg_pars.sd_mu.var(arg_level)); % as calibrate computes precision
+%         sd_mu_trial = sqrt(1/arg_pars.sd_mu.var(arg_level)); % as calibrate computes precision
+        sd_mu_trial = arg_pars.sd_mu.var(arg_level);
         sd_sd_trial = arg_pars.sd_sd.var(arg_level);
     else % indicates high contrast trial
         con = arg_pars.con.var(end) + 1.0;
-        sd_mu_trial = sqrt(1/(arg_pars.sd_mu.var(end)*2));
+%         sd_mu_trial = sqrt(1/(arg_pars.sd_mu.var(end)*2));
+        sd_mu_trial = arg_pars.sd_mu.var(end);
         sd_sd_trial = arg_pars.sd_sd.var(1);
     end
 

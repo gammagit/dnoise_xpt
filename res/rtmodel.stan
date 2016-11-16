@@ -1,5 +1,6 @@
 functions {
     real exgauss_lpdf(vector y, real mu, real sigma, real tau) {
+    // Defines log-likelihood for ex-Gaussian
         real eterm; // exponential term
         real gterm; // cumulative gaussian term
         vector[num_elements(y)] prob;
@@ -18,20 +19,19 @@ functions {
 
 data {
     int NC; // Number of correct
-    vector<lower=0,upper=10000>[NC] rt;
-}
-
-transformed data {
-
+    vector<lower=0,upper=10000>[NC] rt; // assumes values in msec
 }
 
 parameters {
+    // constraints assume rts in msec
+    // lower constraints particularly important for convergence
     real<lower=200,upper=10000> mu;
-    real<lower=50,upper=300> sigma;
-    real<lower=1,upper=300> tau;
+    real<lower=20,upper=300> sigma;
+    real<lower=1,upper=1000> tau;
 }
 
 transformed parameters {
+    // Could transform sigma to precision & tau to lambda here!
     // precision = 1 / (sigma^2);
 }
 
@@ -40,8 +40,8 @@ model {
 
     // Priors
     mu ~ uniform(200,10000);
-    sigma ~ uniform(50, 300);
-    tau ~ uniform(1, 300);
+    sigma ~ uniform(20, 300); // or weakly informative half-Cauchy!
+    tau ~ uniform(1, 1000);
 }
 
 generated quantities {
@@ -52,7 +52,7 @@ generated quantities {
 /*
     fit <- stan()
     print(fit, digits=2)
+    pairs(fit)
     hist(extract(fit)$mu)
     traceplot(fit, include_warmup=FALSE)
-    pairs(fit)
 */

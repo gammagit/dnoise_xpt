@@ -1,7 +1,7 @@
 function out_pars = init_params()
 
     %%% Experiment parameters
-    out_pars.nblocks = 8; % number of blocks
+    out_pars.nblocks = 10; % number of blocks
     out_pars.ntrials = 60; % number of trials in block (if not fixed-time)
     out_pars.neg = 10; % number of example trials before RT blocks
     out_pars.pveasy = 0.10; % probability that trial will be very easy
@@ -32,7 +32,7 @@ function out_pars = init_params()
     out_pars.tblock = 10; % duration of each block
 
     %%% Calibration related parameters
-    out_pars.nct = 55; % number of trials to calibrate
+    out_pars.nct = 60; % number of trials to calibrate
     out_pars.con.init = 2.0; % initial value of contrast for Quest
     out_pars.con.calib = out_pars.con.const(2); % contrast if noise is being calibrated
     out_pars.sd_mu.init = 0.11; % initial value of noise for Quest

@@ -1,8 +1,7 @@
-function out_results = expt(arg_type, arg_sno, arg_subname)
+function out_results = expt(arg_type, arg_subname)
 %%% EXPT simulates an entire experiment
 %%%
 %%% arg_type = type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
-%%% arg_sno = session-number (1/2)
     
 %%%    try
         %%% Assign unique id to subject
@@ -38,7 +37,7 @@ function out_results = expt(arg_type, arg_sno, arg_subname)
                 block(wip, wrp, key_id, new_pars);
             nc = sum(cicseq == 1);
             nic = sum(cicseq == 0);
-            disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_sno);
+            disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_type);
 
             %%% Store everything
             out_results{ii}.xvals = xvals;

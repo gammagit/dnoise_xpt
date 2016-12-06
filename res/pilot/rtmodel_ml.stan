@@ -31,11 +31,11 @@ parameters {
     real<lower=1,upper=1000> tau[NS];
 
     real <lower=100,upper=2000> mu_mu;
-    real <lower=10,upper=500> mu_sigma;
+    real <lower=0,upper=500> mu_sigma;
     real <lower=20,upper=300> sigma_mu;
-    real <lower=20,upper=300> sigma_sigma;
-    real <lower=1,upper=1000> tau_mu;
-    real <lower=1,upper=500> tau_sigma;
+    real <lower=0,upper=300> sigma_sigma;
+    real <lower=5,upper=1000> tau_mu;
+    real <lower=0,upper=250> tau_sigma;
 }
 
 transformed parameters {
@@ -61,11 +61,11 @@ model {
 
     // Priors
     mu_mu ~ uniform(200, 10000);
-    mu_sigma ~ uniform(1, 5000);
+    mu_sigma ~ uniform(0, 500);
     sigma_mu ~ uniform(20, 300);
-    sigma_sigma ~ uniform(1, 150);
-    tau_mu ~ uniform(1, 1000);
-    tau_sigma ~ uniform(1, 500);
+    sigma_sigma ~ uniform(0, 150);
+    tau_mu ~ uniform(5, 1000);
+    tau_sigma ~ uniform(0, 250);
 }
 
 generated quantities {

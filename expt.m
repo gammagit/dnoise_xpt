@@ -1,11 +1,20 @@
-function out_results = expt(arg_type, arg_subname)
-%%% EXPT simulates an entire experiment
-%%%
-%%% arg_type = type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
+function out_results = expt(arg_sno, arg_subname)
+%%%% EXPT simulates an entire experiment
+%%%%
+%%%% arg_sno = session number: 1 / 2
     
 %%%    try
-        %%% Assign unique id to subject
+        %%% Assign unique id to subject 
         subid = now; % Unique subject number based on current date & time
+        
+        %%% Set type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
+        stype = input('Enter session type [s/n]: ', 's');
+        switch(stype)
+            case 's'
+                exp_type = 2;
+            case 'n'
+                exp_type = 1;
+        end
 
         key_id = get_keyboard_id();
 %        key_id = 7;
@@ -21,13 +30,13 @@ function out_results = expt(arg_type, arg_subname)
         %%% Test flip interval
 %        flipint = Screen('GetFlipInterval', wip, 50)
 
-        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, arg_type, 1);
+        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, exp_type, 1);
 %         %%% Begin: DEBUG
 %          xvals = [0.33, 0.26, 0.22];
 %          nc = 5; nic = 3;
 %         %%% End: DEBUG
 
-        new_pars = reconfig_pars(arg_type, pars, xvals); % reconfig noise & con
+        new_pars = reconfig_pars(exp_type, pars, xvals); % reconfig noise & con
 
         disp_interlude(wip, wrp, new_pars, key_id, nc, nic);
 
@@ -37,7 +46,7 @@ function out_results = expt(arg_type, arg_subname)
                 block(wip, wrp, key_id, new_pars);
             nc = sum(cicseq == 1);
             nic = sum(cicseq == 0);
-            disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_type);
+            disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_sno);
 
             %%% Store everything
             out_results{ii}.xvals = xvals;

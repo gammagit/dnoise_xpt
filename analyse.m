@@ -8,9 +8,16 @@ function [out_pars] = analyse()
 
     folder = './res/';
     allfiles = dir([folder, '*.mat']);
+    sub_id = 1;
     for fileix = 1:length(allfiles)
         fileName = fullfile(folder, allfiles(fileix).name);
         load(fileName);
+
+        %%% Process only one type of experiment (to begin with!!!)
+        if (stype == 'n')
+            continue;
+        end
+
         data = out_results;
 
         numlevels = numel(unique(data{1}.nlseq)) - 1; % subtract 1 for level 0
@@ -25,11 +32,11 @@ function [out_pars] = analyse()
         numblocks = size(data, 2);
         for bb = 1:numblocks
             %%% for each level
-            for ll = 1:numlevels
-                ixllc = find(data{bb}.nlseq == ll &...
-                            data{bb}.cicseq == 1); % indices for correct+level
-                crtseq{ll} = [crtseq{ll} scale_ms*data{bb}.dtseq(ixllc)]; % concatenate
-            end
+%            for ll = 1:numlevels
+%                ixllc = find(data{bb}.nlseq == ll &...
+%                            data{bb}.cicseq == 1); % indices for correct+level
+%                crtseq{ll} = [crtseq{ll} scale_ms*data{bb}.dtseq(ixllc)]; % concatenate
+%            end
             rtseq = [rtseq scale_ms*data{bb}.dtseq];
             levelseq = [levelseq data{bb}.nlseq];
             cicseq = [cicseq data{bb}.cicseq];
@@ -37,7 +44,8 @@ function [out_pars] = analyse()
 
 
         %%% Plot RT distribution and ex-Gaussian fit
-        out_filename = [folder, 'sub', int2str(fileix), '.csv'];
+        out_filename = [folder, 'sub', int2str(sub_id), '.csv'];
+        sub_id = sub_id + 1;
         dlmwrite(out_filename, 'rt,diff,correct', 'delimiter', '');
         dlmwrite(out_filename, [rtseq', levelseq', cicseq'], '-append');
     end

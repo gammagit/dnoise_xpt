@@ -1,3 +1,4 @@
 # Ignore test results
 res/*test*.mat
+res/sub*.csv
 pathdef.m

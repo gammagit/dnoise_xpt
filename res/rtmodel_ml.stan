@@ -20,7 +20,7 @@ functions {
 data {
     int<lower=1> NS; // Number of subjects
     int<lower=1> NC[NS]; // Number of correct RTs recorded
-    vector<lower=0,upper=10000>[sum(NC)] rt; // assumes values in msec
+    vector<lower=0,upper=15000>[sum(NC)] rt; // assumes values in msec
 }
 
 parameters {

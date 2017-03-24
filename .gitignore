@@ -1,4 +1,6 @@
 # Ignore test results
 res/*test*.mat
 res/sub*.csv
+res/*.RData
+res/meeting_08_03_17/subfit_*.RData
 pathdef.m

@@ -2,6 +2,7 @@
 res/*test*.mat
 res/sub*.csv
 res/*.RData
+res/.RData
 res/*.rda
 res/meeting_08_03_17/subfit_*.RData
 pathdef.m

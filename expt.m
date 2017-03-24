@@ -103,10 +103,10 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
 %%% wrp = window rectangle pointer
 
         %%% For Datapixx
-        PsychImaging('PrepareConfiguration');
-        PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
-        PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
-        PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
+%        PsychImaging('PrepareConfiguration');
+%        PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
+%        PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
+%        PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
 
         oldWL = Screen('Preference', 'SuppressAllWarnings', 1);
         oldDL = Screen('Preference', 'VisualDebugLevel', 3);
@@ -117,8 +117,8 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
         
         %%% For Datapixx (otherwise replace PsychImaging with Screen cmd
         oldVerbosity = Screen('Preference', 'Verbosity', 1);   % Don't log the GL stuff
-        [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
-%         [wip, wrp] = Screen('OpenWindow', whichScreen);
+%        [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
+         [wip, wrp] = Screen('OpenWindow', whichScreen);
         Screen('Preference', 'Verbosity', oldVerbosity);
         
         try

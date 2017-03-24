@@ -6,9 +6,9 @@ library(ggplot2)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-ml_analysis <- FALSE # Single or multi-level analysis
+ml_analysis <- TRUE # Single or multi-level analysis
 
-subslist <- seq(1,18)
+subslist <- seq(1,6)
 
 mu_all <- NULL
 crt_all <- NULL

@@ -5,4 +5,5 @@ res/*.RData
 res/.RData
 res/*.rda
 res/meeting_08_03_17/subfit_*.RData
+res/meeting_27_03_17/subfit_*.RData
 pathdef.m

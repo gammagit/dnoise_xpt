@@ -6,7 +6,8 @@ library(ggplot2)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-subslist <- seq(1,6)
+session_sig <- TRUE # Session type = signal / noise
+subslist <- seq(1,16)
 model_file <- "rtmodel_lr.stan"
 crt_all <- NULL
 nresp <- NULL
@@ -17,8 +18,15 @@ for (ix in subslist) {
     subtable <- read.csv(filename, header=TRUE)
     subdata <- data.frame(subtable)
 
+    # Pick out signal or noise variation session 
+    if (session_sig == TRUE){
+        session_data <- subset(subdata, stype == 1)
+    } else {
+        session_data <- subset(subdata, stype == 2)
+    }
+
     for (dd in seq(1, 3)) {
-        df_dd <- subset(subdata, (diff == dd & correct == 1))
+        df_dd <- subset(session_data, (diff == dd & correct == 1))
         crt_all <- c(crt_all, df_dd$rt)
         nresp <- c(nresp, length(df_dd$rt))
     }
@@ -29,32 +37,36 @@ lrfit <- NULL
 newx <- seq(0,3,length.out=31)
 lrfit <- stan(file = model_file,
               data = list(NS=length(subslist), ND=3, NC=nresp, NX=31, x=newx, rt=crt_all),
-              init = list(list(beta_mu=matrix(rep(c(1000,10), 5), nrow=5, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 5), nrow=5, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 5), nrow=5, ncol=2, byrow=TRUE))),
+              init = list(list(beta_mu=matrix(rep(c(1000,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE))),
               iter = 5000,
 #                control = list(adapt_delta=0.999), # TODO: Uncomment
-              chains = 3)
+              chains = 1) # TODO: Change to 3 chains - will also need to specify list of init params for each chain
 print(lrfit)
 
 # Plot estimated parameters
 pdf(file="lr_varsig.pdf")
 
-load('subfit_ml_varsignal.RData')
+load('subfit_ml_varsig.RData')
 mu_pred_samples <- extract(lrfit, 'mu_pred')
-all_plots <- list();
+all_plots <- list()
+df_slopes <- NULL
 for (ix in subslist) {
     # Get mean slope & intercept from fit
     beta_mu_ix <- summary(lrfit, pars=c(paste("beta_mu[", ix, ",1]", sep=""), paste("beta_mu[", ix,",2]", sep="")))$summary
     mean_inter <- beta_mu_ix[paste("beta_mu[", ix, ",1]", sep=""), "mean"]
     mean_slope <- beta_mu_ix[paste("beta_mu[", ix, ",2]", sep=""), "mean"]
+    q025_slope <- beta_mu_ix[paste("beta_mu[", ix, ",2]", sep=""), "2.5%"]
+    q975_slope <- beta_mu_ix[paste("beta_mu[", ix, ",2]", sep=""), "97.5%"]
+    df_slope_ix <- data.frame(subid = ix, mean = mean_slope, q025 = q025_slope, q975 = q975_slope)
+    df_slopes <- rbind(df_slopes, df_slope_ix)
 
     # Get confidence intervals based on samples from fit
     mu_pred_ix <- mu_pred_samples$mu_pred[,ix,]
     quant_ix <- apply(mu_pred_ix, 2, quantile, probs=c(0.025,0.5,0.975))
     df_ix <- data.frame(mu = quant_ix[2,], lowmu = quant_ix[1,], upmu = quant_ix[3,], snr=seq(0,30)/10)
     ph <- ggplot(df_ix, aes(snr)) +
-          geom_ribbon(aes(ymin=lowmu, ymax=upmu), fill="gray50", alpha=0.5) +
+          geom_ribbon(aes(ymin=lowmu, ymax=upmu), fill="gray50", alpha=0.4) +
           geom_abline(intercept = mean_inter, slope = mean_slope, size=1, col="firebrick2") +
-          ylim(c(600,1400)) +
           theme_bw() +
           theme(axis.title.y=element_blank(), axis.title.x=element_blank()) +
           scale_x_continuous(breaks=c(1,2,3), labels=c("l", "m", "h"), limits=c(0.9,3.1))
@@ -83,12 +95,34 @@ for (ix in subslist) {
     ci_up <- c(ci_ii$one[2], ci_ii$two[2], ci_ii$three[2]) # upper confidence interval
     df_ii <- data.frame(condition=snrs, rt = mean_rts, low = ci_low, up = ci_up, subject=rep(ix,3))
 
-    ph <- ph + geom_point(data=df_ii, aes(x=condition, y=rt), shape=21, size=3, fill="white") +
-               geom_errorbar(data=df_ii, width=.1, aes(x=condition, ymin=low, ymax=up), alpha=0.5)
+    ph <- ph + geom_point(data=df_ii, aes(x=condition, y=rt), shape=21, size=3, fill="white", alpha=0.7) +
+               geom_errorbar(data=df_ii, width=.2, aes(x=condition, ymin=low, ymax=up), alpha=0.5)
 
     all_plots[[ix]] <- ph
 }
 
-grid.arrange(grobs=all_plots, ncol=4, left="beta_mu", bottom="Signal-to-noise ratio")
+grid.arrange(grobs=all_plots, ncol=4, left="Estimated mu (Correct)",
+             bottom="Signal-to-noise ratio",
+             top="Estimated LR and mu (VarSig)")
+
+# Plot individual and group slope
+mu_beta_mu <- summary(lrfit, pars=c("mu_beta_mu"))$summary
+mean_mu_mu <- mu_beta_mu["mu_beta_mu", "mean"]
+q025_mu_mu <- mu_beta_mu["mu_beta_mu", "2.5%"]
+q975_mu_mu <- mu_beta_mu["mu_beta_mu", "97.5%"]
+df_mu_mu <- data.frame(subid = 0, mean = mean_mu_mu, q025 = q025_mu_mu, q975 = q975_mu_mu)
+
+pslopes <- ggplot(df_slopes, aes(x=subid, y=mean)) +
+           geom_point(aes(x=subid, y=mean), shape=21, size=3, fill="white") +
+           geom_errorbar(width=.2, aes(ymin=q025, ymax=q975), alpha=0.5) +
+           geom_point(data=df_mu_mu, aes(x=subid, y=mean), shape=21, size=3, fill="red") +
+           geom_errorbar(data=df_mu_mu, width=.2, aes(ymin=q025, ymax=q975), col="red", alpha=0.5) +
+           geom_hline(yintercept=0, linetype=2) +
+           ggtitle(expression(paste("Estimated ", beta[1], " for each participant (VarSig)"))) +
+           xlab("Subject") +
+           ylab(expression(paste("Slope (ms / ", Delta," snr)"))) +
+           theme_bw() +
+           scale_x_continuous(breaks=c(0,seq(2,16,by=2)), labels=c("Group", "2", "4", "6", "8", "10", "12", "14", "16"))
+print(pslopes)
 
 dev.off()

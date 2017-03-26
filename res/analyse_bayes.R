@@ -8,7 +8,8 @@ options(mc.cores = parallel::detectCores())
 
 ml_analysis <- TRUE # Single or multi-level analysis
 
-subslist <- seq(1,6)
+session_sig <- TRUE # Session type = signal / noise
+subslist <- seq(1,16)
 
 mu_all <- NULL
 crt_all <- NULL
@@ -20,8 +21,15 @@ for (ix in subslist) {
     subtable <- read.csv(filename, header=TRUE)
     subdata <- data.frame(subtable)
 
+    # Pick out signal or noise variation session 
+    if (session_sig == TRUE){
+        session_data <- subset(subdata, stype == 1)
+    } else {
+        session_data <- subset(subdata, stype == 2)
+    }
+
     for (dd in seq(1, 3)) {
-        crt_dd <- subset(subdata, (diff == dd & correct == 1))
+        crt_dd <- subset(session_data, (diff == dd & correct == 1))
         if (dd == 1) {
             crt_all$one <- c(crt_all$one, crt_dd$rt)
             nresp$one <- c(nresp$one, length(crt_dd$rt))
@@ -166,3 +174,5 @@ if (ml_analysis == TRUE) {
 
     dev.off()
 }
+
+save(subfit, file="subfit_ml_varsig.RData")

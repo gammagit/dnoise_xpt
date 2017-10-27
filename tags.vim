@@ -8,7 +8,7 @@ syntax keyword Tag 026|
 syntax keyword Tag SessionLoad
 syntax keyword Tag add_border
 syntax keyword Tag add_noise
-syntax keyword Tag block
+syntax keyword Tag analyse
 syntax keyword Tag calib_trial
 syntax keyword Tag calibrate
 syntax keyword Tag convert_lum
@@ -32,7 +32,10 @@ syntax keyword Tag iti
 syntax keyword Tag iti
 syntax keyword Tag linearize_monitor
 syntax keyword Tag nllpf
+syntax keyword Tag plot_groupvar
 syntax keyword Tag plot_rwd_anim
+syntax keyword Tag plot_sub
+syntax keyword Tag plot_sub
 syntax keyword Tag psychf
 syntax keyword Tag reconfig_pars
 syntax keyword Tag rescale_template

@@ -10,6 +10,11 @@ function out_pars = init_params()
     out_pars.con.var = [0.45 1.0 1.90]; % contrast in variable signal xpt
     out_pars.con.const = 1.2 * ones (1,3); % contrast in variable noise xpt
 
+    %%% Autocorrelation parameters
+    out_pars.autox = 1; % flag indicating whether autocorrelated signal
+    out_pars.low_high = [0.03 0.05 0.10]; % prob low->high (for 3 difficulties)
+    out_pars.high_low = [0.25 0.25 0.25];
+
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame
     out_pars.sd_mu.var = [0.05 0.08 0.10]; % mean sd frame-to-frame; var noise

@@ -41,6 +41,11 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     tzero_trial = GetSecs;
 %    [VBLTime tzero_trial FlipTime]=Screen('Flip', arg_wip);
 
+    %%% If autocorrelated noise, init current SNR epoch
+    if (arg_pars.autox == 1)
+        curr_snr_epoch = 1; % 1 = low (snr); 2 = high
+    end
+
     %%% Create input queue for keyboard
     KbQueueCreate(arg_keyid); % Create a keyboard queue in advance to save time
     pressed = 0; pressedCode = []; % Flag & code for keyboard queue
@@ -55,6 +60,22 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     next_flip_time = 0; % Initially Flip immediately
     while(~(any(pressedCode == KbName('Left')) ||...
             any(pressedCode == KbName('Right'))))
+        %%% if autocorrelated noise, set sd noise a/c to epoch
+        %%% fluctuates between most easy (1) and most difficult (end)
+        if (arg_pars.autox == 1)
+            if (curr_snr_epoch == 1) % currently low SNR
+                sd_mu_trial = arg_pars.sd_mu.var(end); % high noise, low SNR
+                if (rand <= arg_pars.low_high(arg_level))
+                    curr_snr_spoch = 2; % change to high SNR
+                end
+            else % currently high SNR
+                sd_mu_trial = arg_pars.sd_mu.var(1); % low noise, high SNR
+                if (rand <= arg_pars.high_low(arg_level))
+                    curr_snr_spoch = 1; % change to low SNR
+                end
+            end
+        end
+
         %%% Sample noise from noise distribution
         mu = mu_trial;
         sd = sd_mu_trial + (sd_sd_trial * randn); % sample N(sd_mu,sd_sd)

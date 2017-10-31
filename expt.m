@@ -8,7 +8,8 @@ function out_results = expt(arg_sno, arg_subname)
         subid = now; % Unique subject number based on current date & time
         
         %%% Set type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
-        stype = input('Enter session type [s/n]: ', 's');
+        %%% stype = input('Enter session type [s/n]: ', 's');
+        stype = 'n'; % Experiment 2: Vary noise
         switch(stype)
             case 's'
                 exp_type = 2;
@@ -23,24 +24,28 @@ function out_results = expt(arg_sno, arg_subname)
         pars = init_params();
 
         %%% Linearize monitor
-        oldgfxlut = linearize_monitor(wip);
+       oldgfxlut = linearize_monitor(wip);
 
-        disp_intro(wip, wrp, pars, key_id);
+       disp_intro(wip, wrp, pars, key_id);
 
         %%% Test flip interval
 %        flipint = Screen('GetFlipInterval', wip, 50)
 
-        [xvals, nc, nic] = calibrate(wip, wrp, key_id, pars, exp_type, 1);
+       [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
+           key_id, pars, exp_type, 1);
+       out_results{1}.calibx = allx;
+       out_results{1}.calibints = allints;
+       out_results{1}.calibresps = allresps;
 %         %%% Begin: DEBUG
-%          xvals = [0.33, 0.26, 0.22];
-%          nc = 5; nic = 3;
+%         xvals = [0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
+%         nc = 5; nic = 3;
 %         %%% End: DEBUG
 
-        new_pars = reconfig_pars(exp_type, pars, xvals); % reconfig noise & con
+       new_pars = reconfig_pars(exp_type, pars, xvals); % reconfig noise & con
 
-        disp_interlude(wip, wrp, new_pars, key_id, nc, nic);
+       disp_interlude(wip, wrp, new_pars, key_id, nc, nic);
 
-        disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
+       disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
         for ii = 1:new_pars.nblocks
             [dtseq, decseq, cicseq, nlseq, stimseq] =...
                 block(wip, wrp, key_id, new_pars);
@@ -103,10 +108,10 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
 %%% wrp = window rectangle pointer
 
         %%% For Datapixx
-%        PsychImaging('PrepareConfiguration');
-%        PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
-%        PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
-%        PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
+       PsychImaging('PrepareConfiguration');
+       PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
+       PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
+       PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
 
         oldWL = Screen('Preference', 'SuppressAllWarnings', 1);
         oldDL = Screen('Preference', 'VisualDebugLevel', 3);
@@ -117,8 +122,8 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
         
         %%% For Datapixx (otherwise replace PsychImaging with Screen cmd
         oldVerbosity = Screen('Preference', 'Verbosity', 1);   % Don't log the GL stuff
-%        [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
-         [wip, wrp] = Screen('OpenWindow', whichScreen);
+       [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
+%        [wip, wrp] = Screen('OpenWindow', whichScreen);
         Screen('Preference', 'Verbosity', oldVerbosity);
         
         try
@@ -250,7 +255,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     [cx, cy] = RectCenter(arg_wrp); % get coordinates of center
 
     DrawFormattedText(arg_wip,...
-                        'Welcome to the experiment! This experiment studies how we deal with noise in videos.\n\nThe experiment consists of two sessions, each lasting around 1 hour.\n\nIf you are happy to participate, please sign the consent form and TURN OFF your mobile phone.\n\nOnce you are done, press n to go to the next screen.',...
+                        'Welcome to the experiment! This experiment studies how we deal with noise in videos.\n\nThe experiment lasts around 1 hour 15 mins.\n\nIf you are happy to participate, please sign the consent form and TURN OFF your mobile phone.\n\nOnce you are done, press n to go to the next screen.',...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -267,7 +272,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     WaitSecs('YieldSecs', 0.5);
 
     DrawFormattedText(arg_wip,...
-                        'SESSION 1:\n\nThis session is split into a number of blocks. Each block lasts around five minutes.\n\nDuring each block you will be shown a series of simple videos and your task is to decide what you saw in the video.\n\nYou should use the Left and Right arrow keys to indicate your response.\n\nPress any key to do an example.',...
+                        'The experiment is split into a number of blocks. Each block lasts around five minutes.\n\nDuring each block you will be shown a series of simple videos and your task is to decide what you saw in the video.\n\nYou should use the Left and Right arrow keys to indicate your response.\n\nPress any key to do an example.',...
                         'center',...
                         'center',...
                         BlackIndex(arg_wip),...
@@ -518,11 +523,11 @@ function disp_interblock(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc,...
         WaitSecs('YieldSecs', 0.5);
 
         %%% End of experiment
-        if (arg_sno == 1)
-            endstring = 'That is the end of the session!\n\nPlease organise a time with the experimenter for the second session.\n\nThank you.';
-        else
+%         if (arg_sno == 1)
+%             endstring = 'That is the end of the session!\n\nPlease organise a time with the experimenter for the second session.\n\nThank you.';
+%         else
             endstring = 'That is the end of the experiment!\n\nThank you for participating.';
-        end
+%         end
         DrawFormattedText(arg_wip,...
                             endstring,...
                             'center',...

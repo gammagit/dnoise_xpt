@@ -1,5 +1,5 @@
-function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,...
-                                                  arg_pars, arg_xid, arg_plot)
+function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
+    calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars, arg_xid, arg_plot)
 %%% CALIBRATE runs a sequence of 2AFC trials and uses the responses to generate
 %%% a psychometric function for the participant. It then computes the values
 %%% of the desired intensity variable at the given probability values.
@@ -206,6 +206,9 @@ function [out_xvals, out_nc, out_nic] = calibrate(arg_wip, arg_wrp, arg_keyid,..
 
     %%% Construct final psychometric fn based on ML est
     pf_ml = fit_mlepf(allx, all_ints, all_resps);
+    out_x = allx;
+    out_ints = all_ints;
+    out_resps = all_resps;
 %    all_ints
 %    all_resps
 

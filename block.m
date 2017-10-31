@@ -45,7 +45,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
 
         %%% Choose SNR either from psychometric curve or really easy trial
         %%% These easy trials help participants minimise motor mapping delay
-        if (rand < arg_pars.pveasy) 
+        if (rand < arg_pars.pveasy)
             level = 0; % trial.m uses level=0 to set very easy contrast / noise
         else %%% Randomly sample SNR level
             randorder = randperm(numel(arg_pars.con.var));

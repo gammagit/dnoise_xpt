@@ -1,8 +1,8 @@
 function out_pars = init_params()
 
     %%% Experiment parameters
-    out_pars.nblocks = 2; %10; % number of blocks
-    out_pars.ntrials = 10; %60; % number of trials in block (if not fixed-time)
+    out_pars.nblocks = 8;%10; % !!!!!!!!!!!!!!!!!!!!!!!!!CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!! number of blocks
+    out_pars.ntrials = 60; % number of trials in block (if not fixed-time)
     out_pars.neg = 10; % number of example trials before RT blocks
     out_pars.pveasy = 0.10; % probability that trial will be very easy
 
@@ -12,8 +12,10 @@ function out_pars = init_params()
 
     %%% Autocorrelation parameters
     out_pars.autox = 1; % flag indicating whether autocorrelated signal
-    out_pars.low_high = [0.03 0.05 0.10]; % prob low->high (for 3 difficulties)
-    out_pars.high_low = [0.25 0.25 0.25];
+    switch_low_high = [5 10 15]; % avg frames before switch from low->high
+    switch_high_low = [5 5 5];
+    out_pars.low_high = 1./switch_low_high; % prob low->high (for 3 diffs)
+    out_pars.high_low = 1./switch_high_low;
 
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame
@@ -37,13 +39,13 @@ function out_pars = init_params()
     out_pars.tblock = 10; % duration of each block
 
     %%% Calibration related parameters
-    out_pars.nct = 20;%60; % number of trials to calibrate
+    out_pars.nct = 60; % number of trials to calibrate
     out_pars.con.init = 2.0; % initial value of contrast for Quest
     out_pars.con.calib = out_pars.con.const(2); % contrast if noise is being calibrated
     out_pars.sd_mu.init = 0.11; % initial value of noise for Quest
     out_pars.sd_mu.calib = out_pars.sd_mu.const(2); % noise if contrast is being calibrated
     out_pars.pthresh = [0.60 0.75 0.90 0.99]; % psychometric thresholds for testing
-    out_pars.tcalib = 1; % duration of calibration trial
+    out_pars.tcalib = 2; % duration of calibration trial
 
     %%% Warm-up trials parameters
     out_pars.nwup = [10 5]; % warm-up trials in each calibration block

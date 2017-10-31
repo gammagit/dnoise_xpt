@@ -62,16 +62,16 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
             any(pressedCode == KbName('Right'))))
         %%% if autocorrelated noise, set sd noise a/c to epoch
         %%% fluctuates between most easy (1) and most difficult (end)
-        if (arg_pars.autox == 1)
+        if (arg_pars.autox == 1 && arg_level ~= 0)
             if (curr_snr_epoch == 1) % currently low SNR
-                sd_mu_trial = arg_pars.sd_mu.var(end); % high noise, low SNR
+                sd_mu_trial = arg_pars.sd_mu.var(1); % high noise, low SNR
                 if (rand <= arg_pars.low_high(arg_level))
-                    curr_snr_spoch = 2; % change to high SNR
+                    curr_snr_epoch = 2; % change to high SNR
                 end
             else % currently high SNR
-                sd_mu_trial = arg_pars.sd_mu.var(1); % low noise, high SNR
+                sd_mu_trial = arg_pars.sd_mu.var(end); % low noise, high SNR
                 if (rand <= arg_pars.high_low(arg_level))
-                    curr_snr_spoch = 1; % change to low SNR
+                    curr_snr_epoch = 1; % change to low SNR
                 end
             end
         end

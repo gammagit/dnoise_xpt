@@ -2,13 +2,14 @@ rm(list=ls())
 
 library(ggplot2)
 
-pdf(file="raw_rts.pdf")
+pdf(file="raw_rts_pilot.pdf")
 
 df_rtpc <- NULL # Data frame storing RTs & proportion correct for each sub
 df_diff_crt <- NULL # Stores within-subject difference in RTs (between conditions)
 
 psub <- NULL # Plot handle
-subslist <- seq(1,16)
+# subslist <- seq(1,16) # For Exp1
+subslist <- seq(1,5) # For Exp2 pilot
 all_correct <- NULL
 all_error <- NULL
 
@@ -24,7 +25,8 @@ for (ix in subslist) {
     # Add a column of subject id
     subdata$subid <- rep(ix, nrow(subdata))
 
-    for (ss in seq(1,2)) { # for each session
+#     for (ss in seq(1,2)) { # for each session (Exp1)
+    for (ss in seq(2,2)) { #  Exp2: only one session
         # Get data for session
         session_data <- subset(subdata, stype==ss)
         if (ss == 1){
@@ -85,8 +87,8 @@ pall_pc <- ggplot(df_rtpc, aes(interaction(factor(condition), session), pc)) +
            geom_line(aes(color=subid,
                          group=interaction(subid, session)),
                      alpha=0.2) +
-           geom_jitter(width=0.2, aes(color=subid), alpha=0.4) +
-           xlab("Signal-to-noise ratio") +
+           geom_jitter(width=0.05, aes(color=subid), alpha=0.4) +
+           xlab("Difficulty") +
            ylab("Proportion correct") +
            ylim(0.45, 1) +
            ggtitle("Proportion correct") +
@@ -99,13 +101,17 @@ pall_pc <- ggplot(df_rtpc, aes(interaction(factor(condition), session), pc)) +
 print(pall_pc)
 
 # Plot RTs in each condition
-pall_rt <- ggplot(df_rtpc, aes(interaction(factor(condition), session), mean_crt)) +
+pd <- position_dodge(0.1)
+pall_rt <- ggplot(df_rtpc, aes(interaction(factor(condition), session), mean_crt), position=pd) +
+           geom_errorbar(aes(ymin=mean_crt-sd_crt, ymax=mean_crt+sd_crt, group=subid, color=subid), width=.1, alpha=0.4, position=pd) +
            geom_boxplot(aes(fill=session), alpha=0.2) +
            geom_line(aes(color=subid,
                          group=interaction(subid,session)),
-                     alpha=0.2) +
-           geom_jitter(width=0.2, aes(color=subid), alpha=0.4) +
-           xlab("Signal-to-noise ratio") +
+                     alpha=0.2,
+                     position=pd) +
+#            geom_jitter(width=0.05, aes(color=subid), alpha=0.4) +
+           geom_point(aes(color=subid), alpha=0.4, position=pd) +
+           xlab("Difficulty") +
            ylab("Mean RT (correct)") +
 #            ylim(600, 2000) +
            ggtitle("Mean correct RT") +
@@ -114,13 +120,13 @@ pall_rt <- ggplot(df_rtpc, aes(interaction(factor(condition), session), mean_crt
                                        "#dc8580", "#008989", "#ff9a00", "#bd00ff",
                                        "#7a624f", "#e72a89", "#d3b6aa", "#280da1",
                                        "#1995ad", "#cb0000")) +
-           theme_bw()
+           theme_classic()
 print(pall_rt)
 
 # Plot difference in RTs between conditions
 ph_drt <- ggplot(df_diff_crt, aes(session, diff_crt)) +
           geom_boxplot(aes(fill=session), alpha=0.2) +
-          geom_jitter(width=0.2, aes(color=subid), alpha=0.4) +
+          geom_jitter(width=0.05, aes(color=subid), alpha=0.4) +
           ylab("Difference in (correct) RTs") +
           ggtitle("Change in RTs with SNR") +
           scale_color_manual(values=c("#2b2d42", "#8d99ae", "#d90429", "#00962f",

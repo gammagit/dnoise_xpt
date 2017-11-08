@@ -7,9 +7,10 @@ function [out_pars] = analyse()
     scale_ms = 1000; % scale RTs from seconds to msec
 
     folder = './res/';
-    subnames = {'BBB', 'CCC', 'DDD', 'EEE', 'FFF', 'GGG', 'HHH', 'KKK',...
-                'LLL', 'MMM', 'NNN', 'OOO', 'PPP', 'QQQ', 'RRR', 'SSS',...
-                'TTT', 'UUU'};
+%    subnames = {'BBB', 'CCC', 'DDD', 'EEE', 'FFF', 'GGG', 'HHH', 'KKK',...
+%                'LLL', 'MMM', 'NNN', 'OOO', 'PPP', 'QQQ', 'RRR', 'SSS',...
+%                'TTT', 'UUU'};
+    subnames = {'wc_pilot', 'bs_pilot', 'hd_pilot', 'rc_pilot', 'aw_pilot'};
     sub_id = 0;
     for ix = 1:length(subnames)
         %%% Get files for both sesssions
@@ -17,7 +18,8 @@ function [out_pars] = analyse()
 
         %%% Exclude participants where calibration does not converge correctly
         flag_calib = true; % flag checks if failed calib during any session
-        for ss = 1:2
+%        for ss = 1:2 % for Expt 1
+        for ss = 1:1 % changed for Expt 2 as only one session
             fileName = fullfile(folder, subfiles(ss).name);
             load(fileName);
             if (any(isnan(xvals)))
@@ -37,7 +39,8 @@ function [out_pars] = analyse()
         dlmwrite(out_filename, 'stype,rt,diff,correct', 'delimiter', '');
 
         %%% Read input files from both sessions
-        for ss = 1:2
+%        for ss = 1:2 % Expt 1
+        for ss = 1:1 % changed for Expt 2 as only one session
             fileName = fullfile(folder, subfiles(ss).name);
             load(fileName);
             data = out_results;

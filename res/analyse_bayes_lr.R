@@ -2,12 +2,15 @@ rm(list=ls())
 
 library(rstan)
 library(ggplot2)
+library(grid)
+library(gridExtra)
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-session_sig <- TRUE # Session type = signal / noise
-subslist <- seq(1,16)
+session_sig <- FALSE # Session type = signal / noise
+# subslist <- seq(1,16)
+subslist <- seq(1,5)
 model_file <- "rtmodel_lr.stan"
 crt_all <- NULL
 nresp <- NULL
@@ -37,16 +40,17 @@ lrfit <- NULL
 newx <- seq(0,3,length.out=31)
 lrfit <- stan(file = model_file,
               data = list(NS=length(subslist), ND=3, NC=nresp, NX=31, x=newx, rt=crt_all),
-              init = list(list(beta_mu=matrix(rep(c(1000,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE))),
+#               init = list(list(beta_mu=matrix(rep(c(1000,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE))),
+              init = list(list(beta_mu=matrix(rep(c(1000,10), 5), nrow=5, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 5), nrow=5, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 5), nrow=5, ncol=2, byrow=TRUE))),
               iter = 5000,
 #                control = list(adapt_delta=0.999), # TODO: Uncomment
               chains = 1) # TODO: Change to 3 chains - will also need to specify list of init params for each chain
 print(lrfit)
 
 # Plot estimated parameters
-pdf(file="lr_varsig.pdf")
+pdf(file="lr_varnoise_pilot.pdf")
 
-load('subfit_ml_varsig.RData')
+load('subfit_ml_varnoise.RData')
 mu_pred_samples <- extract(lrfit, 'mu_pred')
 all_plots <- list()
 df_slopes <- NULL
@@ -103,7 +107,7 @@ for (ix in subslist) {
 
 grid.arrange(grobs=all_plots, ncol=4, left="Estimated mu (Correct)",
              bottom="Signal-to-noise ratio",
-             top="Estimated LR and mu (VarSig)")
+             top="Estimated LR and mu (VarNoise)")
 
 # Plot individual and group slope
 mu_beta_mu <- summary(lrfit, pars=c("mu_beta_mu"))$summary
@@ -118,7 +122,7 @@ pslopes <- ggplot(df_slopes, aes(x=subid, y=mean)) +
            geom_point(data=df_mu_mu, aes(x=subid, y=mean), shape=21, size=3, fill="red") +
            geom_errorbar(data=df_mu_mu, width=.2, aes(ymin=q025, ymax=q975), col="red", alpha=0.5) +
            geom_hline(yintercept=0, linetype=2) +
-           ggtitle(expression(paste("Estimated ", beta[1], " for each participant (VarSig)"))) +
+           ggtitle(expression(paste("Estimated ", beta[1], " for each participant (VarNoise)"))) +
            xlab("Subject") +
            ylab(expression(paste("Slope (ms / ", Delta," snr)"))) +
            theme_bw() +
@@ -126,3 +130,5 @@ pslopes <- ggplot(df_slopes, aes(x=subid, y=mean)) +
 print(pslopes)
 
 dev.off()
+
+save(lrfit, file="lrfit_varnoise.RData")

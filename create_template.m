@@ -44,6 +44,8 @@ function out_T = create_template(arg_winsize, arg_tsize, arg_thick, arg_con,...
             vloc_T5(1) : vloc_T5(1)+arg_thick-1) = 1; % upper vertical segment
         inner_T(hloc(2)+arg_thick : hloc(3)-1,...
             vloc_T5(2) : vloc_T5(2)+arg_thick-1) = 1; % lower vertical segment
+    elseif (arg_tid == -1) % indicates no template (for simple detection task)
+        inner_T = Background; % i.e. contains no signal
     else
         error('Incorrect template ID requested');
     end

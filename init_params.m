@@ -11,7 +11,7 @@ function out_pars = init_params()
     out_pars.con.const = 1.2 * ones (1,3); % contrast in variable noise xpt
 
     %%% Autocorrelation parameters
-    out_pars.autox = 1; % flag indicating whether autocorrelated signal
+    out_pars.autox = 0; % flag indicating whether autocorrelated signal
     switch_low_high = [5 10 15]; % avg frames before switch from low->high
     switch_high_low = [5 5 5];
     out_pars.low_high = 1./switch_low_high; % prob low->high (for 3 diffs)
@@ -33,7 +33,7 @@ function out_pars = init_params()
 
     %%% Time-related parameters
     out_pars.mindt = 0.40;
-    out_pars.isi = 0.04;
+    out_pars.isi = 0.025; %0.04;
     out_pars.iti_c = 2;
     out_pars.iti_ic = 5;
     out_pars.tblock = 10; % duration of each block

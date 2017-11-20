@@ -55,6 +55,13 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     out_stim.mu = []; % mean noise during each frame
     out_stim.sd = []; % sd of noise during each frame
     out_stim.con = []; % contrast during each frame
+
+    %%% Simple detection task % TODO: MOVE THESE TO INIT_PARAMS
+    stim_time = 0.3; % time (secs) of stim display (could be drawn from exp)
+    stim_duration = 0.100; % secs
+    stim_displayed = 0; % flag indicated whether stim has been displayed
+
+    all_stim_times = [];
     
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
@@ -85,8 +92,18 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
             Screen('Close', stimtex);
         end
 
+        curr_time = GetSecs - tzero_trial;
+        if (curr_time >= stim_time && stim_displayed ~= 1) % display stimulus
+            template = arg_tid;
+            isi = stim_duration; % don't flip till duration has passed
+            stim_displayed = 1;
+        else % display noise
+            template = -1;
+            isi = arg_pars.isi;
+        end
+
         %%% Generate texture for stim
-        stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, arg_tid,...
+        stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, template,...
             thick, con, mu, sd, lumbk, lumax);
 
         out_stim.mu = [out_stim.mu, mu];
@@ -95,6 +112,11 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
 
         % Display stimuli
         tzero_stim = GetSecs;
+
+        %%% DEBUG - to make sure frames are refereshed at right time
+        all_stim_times = [all_stim_times tzero_stim - tzero_trial];
+        %%% DEBUG
+
         Screen('DrawTexture', arg_wip, stimtex);
         [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
         ifi = FlipTime - tzero_stim; % Inter-frame interval
@@ -106,6 +128,10 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         KbQueueFlush(arg_keyid);
         WaitSecs('YieldSecs', 0.01);
     end
+
+    %%% DEBUG
+    all_stim_times
+    %%% DEBUG
 
     KbQueueStop(arg_keyid);
 

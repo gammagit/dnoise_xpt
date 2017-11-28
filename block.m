@@ -36,6 +36,8 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
     ii = 1; jj = 1;
     total_trials = arg_pars.ntrials;
 %    while ((GetSecs - tzero_block) <= arg_pars.tblock)
+    %%% At start of each block, prepare audio
+    pahandle = prepare_audio();
     while (ii <= total_trials)
         if (rand > 0.5)
             stim_id = 2;
@@ -54,7 +56,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         out_snrseq = [out_snrseq level];
 
         %%% Simulate trial
-        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars);
+        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars, pahandle);
         if (stim_id == dec)
             correct = 1;
             ctseq = [ctseq GetSecs-tzero_block];
@@ -78,4 +80,39 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         out_stims{jj} = stims;
         jj = jj + 1;
     end
+
+    %%% At end of block, close audio port
+    PsychPortAudio('Close', pahandle);
+end
+
+
+function pahandle = prepare_audio()
+
+    % Number of channels and Frequency of the sound
+    nrchannels = 2;
+    freq = 48000;
+
+    % How many times to we wish to play the sound
+    repetitions = 1;
+
+    % Length of the beep
+    beepLengthSecs = 0.1;
+
+    % Open Psych-Audio port, with the follow arguements
+    % (1) [] = default sound device
+    % (2) 1 = sound playback only
+    % (3) 1 = default level of latency
+    % (4) Requested frequency in samples per second
+    % (5) 2 = stereo putput
+    pahandle = PsychPortAudio('Open', [], 1, 1, freq, nrchannels);
+
+    % Set the volume to half for this demo
+    PsychPortAudio('Volume', pahandle, 0.5);
+
+    % Make a beep which we will play back to the user
+    myBeep = MakeBeep(500, beepLengthSecs, freq);
+
+    % Fill the audio playback buffer with the audio data, doubled for stereo
+    % presentation
+    PsychPortAudio('FillBuffer', pahandle, [myBeep; myBeep]);
 end

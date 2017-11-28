@@ -1,5 +1,6 @@
 function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
-                                             arg_level, arg_keyid, arg_pars)
+                                             arg_level, arg_keyid, arg_pars,...
+                                             arg_pahandle)
 %%% TRIAL simulates a single trial
 %%%
 %%% arg_wip = Screen windowPtr (see Psychtoolbox)
@@ -52,7 +53,6 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     KbQueueStart(arg_keyid); % Start a new queue for each trial
 
     %%% Prepare audio for playing beep with stim
-    pahandle = prepare_audio();
     audio_playback = 0;
 
     %%% Record the stimuli presented during each frame
@@ -115,22 +115,21 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         out_stim.con = [out_stim.con, con];
 
         % Display stimuli
-        tzero_stim = GetSecs;
+        Screen('DrawTexture', arg_wip, stimtex);
 
+        tzero_stim = GetSecs;
         %%% DEBUG - to make sure frames are refereshed at right time
         all_stim_times = [all_stim_times tzero_stim - tzero_trial];
         %%% DEBUG
+        [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
+        ifi = VBLTime - tzero_stim % Inter-frame interval
+        next_flip_time = VBLTime + isi - (ifi / 2); % Keep displaying stim for isi.on
 
         %%% Play audio for stim_duration starting stim_time
         if (curr_time >= stim_time && audio_playback ~= 1)
-            PsychPortAudio('Start', pahandle, 1, 0, 0, GetSecs+stim_duration); % Start audio
+            PsychPortAudio('Start', arg_pahandle, 1, 0, 0, GetSecs+stim_duration); % Start audio
             audio_playback = 1;
         end
-        
-        Screen('DrawTexture', arg_wip, stimtex);
-        [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
-        ifi = VBLTime - tzero_stim % Inter-frame interval
-        next_flip_time = tzero_flip + isi - (ifi / 2); % Keep displaying stim for isi.on
 
         % Check if keyboard has been pressed
         [pressed, firstPress] = KbQueueCheck(arg_keyid);
@@ -138,9 +137,6 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         KbQueueFlush(arg_keyid);
         WaitSecs('YieldSecs', 0.01);
     end
-
-    %%% At end of trial, close audio port
-    PsychPortAudio('Close', pahandle);
 
     %%% DEBUG
     all_stim_times
@@ -157,36 +153,4 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     else
         out_dec = -1;
     end
-end
-
-
-function pahandle = prepare_audio()
-
-    % Number of channels and Frequency of the sound
-    nrchannels = 2;
-    freq = 48000;
-
-    % How many times to we wish to play the sound
-    repetitions = 1;
-
-    % Length of the beep
-    beepLengthSecs = 0.1;
-
-    % Open Psych-Audio port, with the follow arguements
-    % (1) [] = default sound device
-    % (2) 1 = sound playback only
-    % (3) 1 = default level of latency
-    % (4) Requested frequency in samples per second
-    % (5) 2 = stereo putput
-    pahandle = PsychPortAudio('Open', [], 1, 1, freq, nrchannels);
-
-    % Set the volume to half for this demo
-    PsychPortAudio('Volume', pahandle, 0.5);
-
-    % Make a beep which we will play back to the user
-    myBeep = MakeBeep(500, beepLengthSecs, freq);
-
-    % Fill the audio playback buffer with the audio data, doubled for stereo
-    % presentation
-    PsychPortAudio('FillBuffer', pahandle, [myBeep; myBeep]);
 end

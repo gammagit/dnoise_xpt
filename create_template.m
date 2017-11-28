@@ -100,6 +100,6 @@ function out_T = rescale_template(arg_T, arg_con)
 %%% such that total energy (i.e. integral of S0^2) = 1.
 
     energy = sum(sum(arg_T.^2)); % total energy of signal
-    scaled_stims = arg_T ./ (sqrt(energy)); % rescaled s:t intg(s^2) = 1
+    scaled_stims = arg_T ./ (sqrt(energy) + 0.0001); % rescaled s:t intg(s^2) = 1
     out_T = arg_con * scaled_stims;
 end

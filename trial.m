@@ -121,16 +121,16 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         all_stim_times = [all_stim_times tzero_stim - tzero_trial];
         %%% DEBUG
 
-        Screen('DrawTexture', arg_wip, stimtex);
-        [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
-        ifi = FlipTime - tzero_stim; % Inter-frame interval
-        next_flip_time = tzero_flip + isi - ifi; % Keep displaying stim for isi.on
-
         %%% Play audio for stim_duration starting stim_time
         if (curr_time >= stim_time && audio_playback ~= 1)
             PsychPortAudio('Start', pahandle, 1, 0, 0, GetSecs+stim_duration); % Start audio
             audio_playback = 1;
         end
+        
+        Screen('DrawTexture', arg_wip, stimtex);
+        [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
+        ifi = VBLTime - tzero_stim % Inter-frame interval
+        next_flip_time = tzero_flip + isi - (ifi / 2); % Keep displaying stim for isi.on
 
         % Check if keyboard has been pressed
         [pressed, firstPress] = KbQueueCheck(arg_keyid);

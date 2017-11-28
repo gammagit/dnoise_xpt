@@ -8,7 +8,7 @@ function out_pars = init_params()
 
     %%% Signal parameters
     out_pars.con.var = [0.45 1.0 1.90]; % contrast in variable signal xpt
-    out_pars.con.const = 1.2 * ones (1,3); % contrast in variable noise xpt
+    out_pars.con.const = 2.5 * ones (1,3); % contrast in variable noise xpt
 
     %%% Autocorrelation parameters
     out_pars.autox = 0; % flag indicating whether autocorrelated signal
@@ -33,7 +33,7 @@ function out_pars = init_params()
 
     %%% Time-related parameters
     out_pars.mindt = 0.40;
-    out_pars.isi = 0.025; %0.04;
+    out_pars.isi = 0.10; %0.04;
     out_pars.iti_c = 2;
     out_pars.iti_ic = 5;
     out_pars.tblock = 10; % duration of each block

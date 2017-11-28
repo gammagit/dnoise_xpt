@@ -61,11 +61,13 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     out_stim.con = []; % contrast during each frame
 
     %%% Simple detection task % TODO: MOVE THESE TO INIT_PARAMS
-    stim_time = 0.3; % time (secs) of stim display (could be drawn from exp)
+    stim_time = 0.5; % time (secs) of stim display (could be drawn from exp)
     stim_duration = 0.100; % secs
     stim_displayed = 0; % flag indicated whether stim has been displayed
 
-    all_stim_times = [];
+    all_stim_times = zeros(1,100);
+    all_next_flip_times = zeros(1,100);
+    count_stim = 1;
     
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
@@ -117,13 +119,15 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         % Display stimuli
         Screen('DrawTexture', arg_wip, stimtex);
 
-        tzero_stim = GetSecs;
-        %%% DEBUG - to make sure frames are refereshed at right time
-        all_stim_times = [all_stim_times tzero_stim - tzero_trial];
-        %%% DEBUG
+        %tzero_stim = GetSecs;
         [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
-        ifi = VBLTime - tzero_stim % Inter-frame interval
-        next_flip_time = VBLTime + isi - (ifi / 2); % Keep displaying stim for isi.on
+        ifi = FlipTime - VBLTime; % Inter-frame interval
+        next_flip_time = VBLTime + isi - ifi; % Keep displaying stim for isi.on
+        %%% DEBUG - to make sure frames are refereshed at right time
+        all_stim_times(count_stim) = VBLTime - tzero_trial;
+        all_next_flip_times(count_stim) = next_flip_time - tzero_trial;
+        count_stim = count_stim + 1;
+        %%% DEBUG
 
         %%% Play audio for stim_duration starting stim_time
         if (curr_time >= stim_time && audio_playback ~= 1)
@@ -139,7 +143,8 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     end
 
     %%% DEBUG
-    all_stim_times
+    all_stim_times(1:10)
+    all_next_flip_times(1:10)
     %%% DEBUG
 
     KbQueueStop(arg_keyid);

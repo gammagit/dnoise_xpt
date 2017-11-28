@@ -51,6 +51,10 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     pressed = 0; pressedCode = []; % Flag & code for keyboard queue
     KbQueueStart(arg_keyid); % Start a new queue for each trial
 
+    %%% Prepare audio for playing beep with stim
+    pahandle = prepare_audio();
+    audio_playback = 0;
+
     %%% Record the stimuli presented during each frame
     out_stim.mu = []; % mean noise during each frame
     out_stim.sd = []; % sd of noise during each frame
@@ -122,12 +126,21 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         ifi = FlipTime - tzero_stim; % Inter-frame interval
         next_flip_time = tzero_flip + isi - ifi; % Keep displaying stim for isi.on
 
+        %%% Play audio for stim_duration starting stim_time
+        if (curr_time >= stim_time && audio_playback ~= 1)
+            PsychPortAudio('Start', pahandle, 1, 0, 0, GetSecs+stim_duration); % Start audio
+            audio_playback = 1;
+        end
+
         % Check if keyboard has been pressed
         [pressed, firstPress] = KbQueueCheck(arg_keyid);
         pressedCode = find(firstPress);
         KbQueueFlush(arg_keyid);
         WaitSecs('YieldSecs', 0.01);
     end
+
+    %%% At end of trial, close audio port
+    PsychPortAudio('Close', pahandle);
 
     %%% DEBUG
     all_stim_times
@@ -144,4 +157,36 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     else
         out_dec = -1;
     end
+end
+
+
+function pahandle = prepare_audio()
+
+    % Number of channels and Frequency of the sound
+    nrchannels = 2;
+    freq = 48000;
+
+    % How many times to we wish to play the sound
+    repetitions = 1;
+
+    % Length of the beep
+    beepLengthSecs = 0.1;
+
+    % Open Psych-Audio port, with the follow arguements
+    % (1) [] = default sound device
+    % (2) 1 = sound playback only
+    % (3) 1 = default level of latency
+    % (4) Requested frequency in samples per second
+    % (5) 2 = stereo putput
+    pahandle = PsychPortAudio('Open', [], 1, 1, freq, nrchannels);
+
+    % Set the volume to half for this demo
+    PsychPortAudio('Volume', pahandle, 0.5);
+
+    % Make a beep which we will play back to the user
+    myBeep = MakeBeep(500, beepLengthSecs, freq);
+
+    % Fill the audio playback buffer with the audio data, doubled for stereo
+    % presentation
+    PsychPortAudio('FillBuffer', pahandle, [myBeep; myBeep]);
 end

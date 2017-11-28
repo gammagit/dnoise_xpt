@@ -21,6 +21,9 @@ function out_results = expt(arg_sno, arg_subname)
 %        key_id = 7;
 
         [wip, wrp, oldDL, oldWL] = init_screen();
+
+        InitializePsychSound(1); % init sound drivers (for beep with stim)
+
         pars = init_params();
 
         %%% Linearize monitor

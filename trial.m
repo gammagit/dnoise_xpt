@@ -1,6 +1,6 @@
 function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
                                              arg_level, arg_keyid, arg_pars,...
-                                             arg_pahandle)
+                                             arg_pahandle, arg_flipint)
 %%% TRIAL simulates a single trial
 %%%
 %%% arg_wip = Screen windowPtr (see Psychtoolbox)
@@ -121,8 +121,8 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
 
         %tzero_stim = GetSecs;
         [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
-        ifi = FlipTime - VBLTime; % Inter-frame interval
-        next_flip_time = VBLTime + isi - ifi; % Keep displaying stim for isi.on
+%         ifi = FlipTime - VBLTime; % Inter-frame interval
+        next_flip_time = VBLTime + isi - 0.5*arg_flipint; % Keep displaying stim for isi.on
         %%% DEBUG - to make sure frames are refereshed at right time
         all_stim_times(count_stim) = VBLTime - tzero_trial;
         all_next_flip_times(count_stim) = next_flip_time - tzero_trial;

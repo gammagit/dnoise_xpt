@@ -1,5 +1,5 @@
 function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
-    block(arg_wip, arg_wrp, arg_keyid, arg_pars)
+    block(arg_wip, arg_wrp, arg_keyid, arg_pars, arg_flipint)
 %%% BLOCK simulates a block of trials and returns decisions and decision times 
 %%%
 %%% out_rtseq = vector of floats containing the reaction times
@@ -56,7 +56,8 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         out_snrseq = [out_snrseq level];
 
         %%% Simulate trial
-        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars, pahandle);
+        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level,...
+                                 arg_keyid, arg_pars, pahandle, arg_flipint);
         if (stim_id == dec)
             correct = 1;
             ctseq = [ctseq GetSecs-tzero_block];

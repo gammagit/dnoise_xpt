@@ -32,7 +32,7 @@ function out_results = expt(arg_sno, arg_subname)
        disp_intro(wip, wrp, pars, key_id);
 
         %%% Test flip interval
-%        flipint = Screen('GetFlipInterval', wip, 50)
+       flipint = Screen('GetFlipInterval', wip, 50);
 
        [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
            key_id, pars, exp_type, 1);
@@ -40,7 +40,7 @@ function out_results = expt(arg_sno, arg_subname)
        out_results{1}.calibints = allints;
        out_results{1}.calibresps = allresps;
 %         %%% Begin: DEBUG
-%         xvals = [0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
+%         xvals = [0.30, 0.20, 0.10]; %[0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
 %         nc = 5; nic = 3;
 %         %%% End: DEBUG
 
@@ -51,7 +51,7 @@ function out_results = expt(arg_sno, arg_subname)
        disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
         for ii = 1:new_pars.nblocks
             [dtseq, decseq, cicseq, nlseq, stimseq] =...
-                block(wip, wrp, key_id, new_pars);
+                block(wip, wrp, key_id, new_pars, flipint);
             nc = sum(cicseq == 1);
             nic = sum(cicseq == 0);
             disp_interblock(wip, wrp, new_pars, key_id, nc, nic, ii, arg_sno);

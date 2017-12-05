@@ -52,22 +52,20 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     pressed = 0; pressedCode = []; % Flag & code for keyboard queue
     KbQueueStart(arg_keyid); % Start a new queue for each trial
 
-    %%% Prepare audio for playing beep with stim
-    audio_playback = 0;
-
     %%% Record the stimuli presented during each frame
     out_stim.mu = []; % mean noise during each frame
     out_stim.sd = []; % sd of noise during each frame
     out_stim.con = []; % contrast during each frame
 
-    %%% Simple detection task % TODO: MOVE THESE TO INIT_PARAMS
-    stim_time = 0.5; % time (secs) of stim display (could be drawn from exp)
-    stim_duration = 0.100; % secs
+    %%% Simple detection task
     stim_displayed = 0; % flag indicated whether stim has been displayed
+    audio_playback = 0; % Prepare audio for playing beep with stim
 
-    all_stim_times = zeros(1,100);
-    all_next_flip_times = zeros(1,100);
-    count_stim = 1;
+    %%% DEBUG
+    %%% all_stim_times = zeros(1,100);
+    %%% all_next_flip_times = zeros(1,100);
+    %%% count_stim = 1;
+    %%% DEBUG
     
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
@@ -99,9 +97,9 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         end
 
         curr_time = GetSecs - tzero_trial;
-        if (curr_time >= stim_time && stim_displayed ~= 1) % display stimulus
+        if (curr_time >= arg_pars.stim_time && stim_displayed ~= 1) % display stimulus
             template = arg_tid;
-            isi = stim_duration; % don't flip till duration has passed
+            isi = arg_pars.stim_duration; % don't flip till duration has passed
             stim_displayed = 1;
         else % display noise
             template = -1;
@@ -121,17 +119,16 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
 
         %tzero_stim = GetSecs;
         [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
-%         ifi = FlipTime - VBLTime; % Inter-frame interval
         next_flip_time = VBLTime + isi - 0.5*arg_flipint; % Keep displaying stim for isi.on
         %%% DEBUG - to make sure frames are refereshed at right time
-        all_stim_times(count_stim) = VBLTime - tzero_trial;
-        all_next_flip_times(count_stim) = next_flip_time - tzero_trial;
-        count_stim = count_stim + 1;
+        %%% all_stim_times(count_stim) = VBLTime - tzero_trial;
+        %%% all_next_flip_times(count_stim) = next_flip_time - tzero_trial;
+        %%% count_stim = count_stim + 1;
         %%% DEBUG
 
         %%% Play audio for stim_duration starting stim_time
-        if (curr_time >= stim_time && audio_playback ~= 1)
-            PsychPortAudio('Start', arg_pahandle, 1, 0, 0, GetSecs+stim_duration); % Start audio
+        if (curr_time >= arg_pars.stim_time && audio_playback ~= 1)
+            PsychPortAudio('Start', arg_pahandle, 1, 0, 0, GetSecs+arg_pars.stim_duration); % Start audio
             audio_playback = 1;
         end
 
@@ -143,8 +140,8 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     end
 
     %%% DEBUG
-    all_stim_times(1:10)
-    all_next_flip_times(1:10)
+    %%% all_stim_times(1:10)
+    %%% all_next_flip_times(1:10)
     %%% DEBUG
 
     KbQueueStop(arg_keyid);

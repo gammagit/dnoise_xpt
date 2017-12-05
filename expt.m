@@ -35,7 +35,7 @@ function out_results = expt(arg_sno, arg_subname)
        flipint = Screen('GetFlipInterval', wip, 50);
 
        [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
-           key_id, pars, exp_type, 1);
+           key_id, pars, exp_type, 1, flipint);
        out_results{1}.calibx = allx;
        out_results{1}.calibints = allints;
        out_results{1}.calibresps = allresps;

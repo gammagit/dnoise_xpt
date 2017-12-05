@@ -4,7 +4,9 @@ function out_dec = calib_trial(arg_wip,...
                                arg_keyid,...
                                arg_pars,...
                                arg_ints,...
-                               arg_xid)
+                               arg_xid,...
+                               arg_pahandle,...
+                               arg_flipint)
 %%% CALIB_TRIAL simulates a single calibration trial. Stimulus is displayed for
 %%% a fixed amount of time and participant choosed between two options.
 %%%
@@ -51,6 +53,10 @@ function out_dec = calib_trial(arg_wip,...
     Screen('Flip', arg_wip);
     WaitSecs(0.5);
 
+    %%% Simple detection task
+    stim_displayed = 0; % flag indicated whether stim has been displayed
+    audio_playback = 0; % Prepare audio for playing beep with stim
+
     tzero_trial = GetSecs; % record starting time
 
     next_flip_time = 0; % Initially Flip immediately
@@ -59,16 +65,33 @@ function out_dec = calib_trial(arg_wip,...
             Screen('Close', stimtex);
             clear stimtex;
         end
+
+        %%% Simple detection: stim displayed briefly at stim_time after start of trial
+        curr_time = GetSecs - tzero_trial;
+        if (curr_time >= arg_pars.stim_time && stim_displayed ~= 1) % display stimulus
+            template = arg_tid;
+            isi = arg_pars.stim_duration; % don't flip till duration has passed
+            stim_displayed = 1;
+        else % display noise
+            template = -1;
+            isi = arg_pars.isi;
+        end
+
         %%% Generate texture for stim
-        stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, arg_tid,...
+        stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, template,...
             thick, con, mu, sd_mu, lumbk, lumax);
 
         %%% Display stimulus
         tzero_stim = GetSecs;
         Screen('DrawTexture', arg_wip, stimtex);
         [VBLTime tzero_flip FlipTime] = Screen('Flip', arg_wip, next_flip_time);
-        ifi = FlipTime - tzero_stim; % Inter-frame interval
-        next_flip_time = tzero_flip + isi - ifi; % Keep displaying stim for isi.on
+        next_flip_time = VBLTime + isi - 0.5*arg_flipint; % Keep displaying stim for isi.on
+
+        %%% Play audio for stim_duration starting stim_time
+        if (curr_time >= arg_pars.stim_time && audio_playback ~= 1)
+            PsychPortAudio('Start', arg_pahandle, 1, 0, 0, GetSecs+arg_pars.stim_duration); % Start audio
+            audio_playback = 1;
+        end
 
         WaitSecs('YieldSecs', 0.01);
     end

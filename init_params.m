@@ -17,6 +17,10 @@ function out_pars = init_params()
     out_pars.low_high = 1./switch_low_high; % prob low->high (for 3 diffs)
     out_pars.high_low = 1./switch_high_low;
 
+    %%% Simple detection task
+    out_pars.stim_time = 0.5; % time (secs) of stim display (could be drawn from exp)
+    out_pars.stim_duration = 0.100; % secs
+
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame
     out_pars.sd_mu.var = [0.05 0.08 0.10]; % mean sd frame-to-frame; var noise

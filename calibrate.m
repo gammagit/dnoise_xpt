@@ -1,5 +1,5 @@
 function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
-    calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars, arg_xid, arg_plot)
+    calibrate(arg_wip, arg_wrp, arg_keyid, arg_pars, arg_xid, arg_plot, arg_flipint)
 %%% CALIBRATE runs a sequence of 2AFC trials and uses the responses to generate
 %%% a psychometric function for the participant. It then computes the values
 %%% of the desired intensity variable at the given probability values.
@@ -56,6 +56,9 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
     allx = linspace(min_est, max_est, 5000);
     ints_perms = randperm(nints); % first permutation of intensities
 
+    %%% At start of each block, prepare audio
+    pahandle = prepare_audio();
+
     for (jj = 1:2) % Split calibration into two sub-blocks
         %%% Warm-up: Display some easy trials
         for (ii = 1:arg_pars.nwup(jj))
@@ -75,7 +78,7 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
                 stim_id = 5;
             end
             dec = calib_trial(arg_wip, arg_wrp, stim_id, arg_keyid, arg_pars,...
-                            ints_ii, arg_xid);
+                            ints_ii, arg_xid, pahandle, arg_flipint);
 
             %%% Wait for ITI
             WaitSecs('YieldSecs', 0.5);
@@ -125,7 +128,7 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
             end
 
             dec = calib_trial(arg_wip, arg_wrp, stim_id, arg_keyid, arg_pars,...
-                            ints_ii, arg_xid);
+                            ints_ii, arg_xid, pahandle, arg_flipint);
 
 %             %%% DEBUG
 %             if (ii == 8)
@@ -188,6 +191,9 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
             WaitSecs('YieldSecs', 0.5);
         end
     end
+
+    %%% At end of block, close audio port
+    PsychPortAudio('Close', pahandle);
 
     %%% Aggregate all intensity and response vectors
     all_ints = [];

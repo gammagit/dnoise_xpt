@@ -32,7 +32,7 @@ function out_dec = calib_trial(arg_wip,...
     if (arg_xid == 1)
         con = arg_pars.con.calib;
 %        sd_mu = arg_ints; % sd_sd is assumed to be 0 during calib
-        sd_mu = sqrt(1/arg_ints) % sd_sd is assumed to be 0 during calib
+        sd_mu = sqrt(1/arg_ints); % sd_sd is assumed to be 0 during calib
     else
         con = arg_ints; % Note: not using lo & hi for calib
         sd_mu = arg_pars.sd_mu.calib;

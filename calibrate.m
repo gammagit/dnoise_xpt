@@ -19,7 +19,7 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
     %%% Set initial values of estimates based on variable being calibrated
     if (arg_xid == 1)
         est = 1/(arg_pars.sd_mu.init^2); % Est precision at start of Quest
-        max_est = 1/(0.1^2); % defines range for precision of noise
+        max_est = 1/(0.05^2); % defines range for precision of noise
         min_est = 1/(0.5^2); % min mean noise
         est_sd = 1/(0.1^2); % a large SD as prior
         xstring = 'precision threshold estimates';
@@ -116,6 +116,7 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
                 ints_ii = max_est;
             end
 
+            ints_ii
             %%% Record the intensities
            ints_vec{test_ints} = [ints_vec{test_ints}, ints_ii];
 %             ints_vec{test_ints} = [ints_vec{test_ints}, sqrt(ints_ii)];
@@ -261,9 +262,9 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
         resp0 = all_ints(find(all_resps == 0));
         resp1 = all_ints(find(all_resps == 1));
         if (arg_xid == 1)
-            edges = linspace(min_est, max(resp1), 20);
+            edges = linspace(min_est, max(resp1), 40);
         else
-            edges = linspace(min_est, max(resp1), 20);
+            edges = linspace(min_est, max(resp1), 40);
         end
         bins_resp0 = histc(resp0, edges);
         bins_resp1 = histc(resp1, edges);

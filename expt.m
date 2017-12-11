@@ -26,29 +26,29 @@ function out_results = expt(arg_sno, arg_subname)
 
         pars = init_params();
 
-        %%% Linearize monitor
+       %%% Linearize monitor
        oldgfxlut = linearize_monitor(wip);
 
-       disp_intro(wip, wrp, pars, key_id);
-
-        %%% Test flip interval
+       %%% Test flip interval
        flipint = Screen('GetFlipInterval', wip, 50);
 
-       [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
-           key_id, pars, exp_type, 1, flipint);
-       out_results{1}.calibx = allx;
-       out_results{1}.calibints = allints;
-       out_results{1}.calibresps = allresps;
+%        disp_intro(wip, wrp, pars, key_id, flipint);
+% 
+%        [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
+%            key_id, pars, exp_type, 1, flipint);
+%        out_results{1}.calibx = allx;
+%        out_results{1}.calibints = allints;
+%        out_results{1}.calibresps = allresps;
 %         %%% Begin: DEBUG
-%         xvals = [0.30, 0.20, 0.10]; %[0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
-%         nc = 5; nic = 3;
+        xvals = [0.35, 0.25, 0.20]; %[0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
+        nc = 5; nic = 3;
 %         %%% End: DEBUG
 
        new_pars = reconfig_pars(exp_type, pars, xvals); % reconfig noise & con
 
-       disp_interlude(wip, wrp, new_pars, key_id, nc, nic);
-
-       disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
+%        disp_interlude(wip, wrp, new_pars, key_id, nc, nic, flipint);
+% 
+%        disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
         for ii = 1:new_pars.nblocks
             [dtseq, decseq, cicseq, nlseq, stimseq] =...
                 block(wip, wrp, key_id, new_pars, flipint);
@@ -251,7 +251,7 @@ function out_dev = get_keyboard_id()
 end
 
 
-function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
+function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_flipint)
 %%% DISP_INTRO displays instructions for participants at the start of the
 %%% experiment.
 
@@ -292,7 +292,11 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
     WaitSecs('YieldSecs', 0.5);
 
     %%% Display a calibration trial with large contrast and chosen stim
-    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, arg_pars, 3.0, 2);
+    pahandle = prepare_audio();
+    new_pars = arg_pars;
+    new_pars.stim_duration = 0.2;
+    dec = calib_trial(arg_wip, arg_wrp, 2, arg_keyid, new_pars, 200, 1, pahandle, arg_flipint);
+    PsychPortAudio('Close', pahandle);
 
     DrawFormattedText(arg_wip,...
     ['Great! In the first block, you will see each video for ', num2str(arg_pars.tcalib), ' sec and then be asked for a response.\n\nThe images in some videos may seem nearly impossible to see. In these cases, give us your best estimate of what you saw. These cases helps us calibrate your vision.\n\nIn each case, try and be as *accurate* as possible.\n\nPress n to start the experiment.'],...
@@ -372,7 +376,7 @@ function disp_intro(arg_wip, arg_wrp, arg_pars, arg_keyid)
 end
 
 
-function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
+function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic, arg_flipint)
 %%% DISP_INTERLUDE displays instructions after calibration and before actual
 %%% experiment.
 
@@ -426,7 +430,9 @@ function disp_interlude(arg_wip, arg_wrp, arg_pars, arg_keyid, arg_nc, arg_nic)
         else
             level = 0; % v easy
         end
-        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars);
+        pahandle = prepare_audio();
+        [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level, arg_keyid, arg_pars, pahandle, arg_flipint);
+        PsychPortAudio('Close', pahandle);
         iti_norwd(arg_wip, arg_wrp, stim_id, dec, dt, arg_pars);
     end
     DrawFormattedText(arg_wip,...

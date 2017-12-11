@@ -1,14 +1,14 @@
 function out_pars = init_params()
 
     %%% Experiment parameters
-    out_pars.nblocks = 8;%10; % !!!!!!!!!!!!!!!!!!!!!!!!!CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!! number of blocks
-    out_pars.ntrials = 60; % number of trials in block (if not fixed-time)
+    out_pars.nblocks = 2;%8;%10; % !!!!!!!!!!!!!!!!!!!!!!!!!CHANGE!!!!!!!!!!!!!!!!!!!!!!!!!!! number of blocks
+    out_pars.ntrials = 10;%60; % number of trials in block (if not fixed-time)
     out_pars.neg = 10; % number of example trials before RT blocks
     out_pars.pveasy = 0.10; % probability that trial will be very easy
 
     %%% Signal parameters
     out_pars.con.var = [0.45 1.0 1.90]; % contrast in variable signal xpt
-    out_pars.con.const = 2.5 * ones (1,3); % contrast in variable noise xpt
+    out_pars.con.const = 3.0 * ones (1,3); % contrast in variable noise xpt
 
     %%% Autocorrelation parameters
     out_pars.autox = 0; % flag indicating whether autocorrelated signal
@@ -43,18 +43,18 @@ function out_pars = init_params()
     out_pars.tblock = 10; % duration of each block
 
     %%% Calibration related parameters
-    out_pars.nct = 60; % number of trials to calibrate
-    out_pars.con.init = 2.0; % initial value of contrast for Quest
+    out_pars.nct = 30;%60; % number of trials to calibrate
+    out_pars.con.init = 3.0; % initial value of contrast for Quest
     out_pars.con.calib = out_pars.con.const(2); % contrast if noise is being calibrated
-    out_pars.sd_mu.init = 0.11; % initial value of noise for Quest
+    out_pars.sd_mu.init = 0.10; % initial value of noise for Quest
     out_pars.sd_mu.calib = out_pars.sd_mu.const(2); % noise if contrast is being calibrated
     out_pars.pthresh = [0.60 0.75 0.90 0.99]; % psychometric thresholds for testing
     out_pars.tcalib = 2; % duration of calibration trial
 
     %%% Warm-up trials parameters
-    out_pars.nwup = [10 5]; % warm-up trials in each calibration block
+    out_pars.nwup = [2 2]; % CHANGE!!!!!!!!!!!!!!!!!!!![10 5]; % warm-up trials in each calibration block
     out_pars.wup.min_con = 1.5; % minimum contrast during warm-up
     out_pars.wup.max_con = 3.0; % maximum contrast during warm-up
     out_pars.wup.min_sd = 0.05; % minimum contrast during warm-up
-    out_pars.wup.max_sd = 0.20; % maximum contrast during warm-up
+    out_pars.wup.max_sd = 0.15; % maximum contrast during warm-up
 end

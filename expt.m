@@ -32,23 +32,23 @@ function out_results = expt(arg_sno, arg_subname)
        %%% Test flip interval
        flipint = Screen('GetFlipInterval', wip, 50);
 
-%        disp_intro(wip, wrp, pars, key_id, flipint);
-% 
-%        [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
-%            key_id, pars, exp_type, 1, flipint);
-%        out_results{1}.calibx = allx;
-%        out_results{1}.calibints = allints;
-%        out_results{1}.calibresps = allresps;
+       disp_intro(wip, wrp, pars, key_id, flipint);
+
+       [xvals, nc, nic, allx, allints, allresps] = calibrate(wip, wrp,...
+           key_id, pars, exp_type, 1, flipint);
+       out_results{1}.calibx = allx;
+       out_results{1}.calibints = allints;
+       out_results{1}.calibresps = allresps;
 %         %%% Begin: DEBUG
-        xvals = [0.35, 0.25, 0.20]; %[0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
-        nc = 5; nic = 3;
+%         xvals = [0.30, 0.21, 0.14, 0.11]; %[0.42, 0.29, 0.22]; %[0.33, 0.26, 0.22];
+%         nc = 5; nic = 3;
 %         %%% End: DEBUG
 
        new_pars = reconfig_pars(exp_type, pars, xvals); % reconfig noise & con
 
-%        disp_interlude(wip, wrp, new_pars, key_id, nc, nic, flipint);
-% 
-%        disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
+       disp_interlude(wip, wrp, new_pars, key_id, nc, nic, flipint);
+
+       disp_interblock(wip, wrp, new_pars, key_id, 0, 0, 0);
         for ii = 1:new_pars.nblocks
             [dtseq, decseq, cicseq, nlseq, stimseq] =...
                 block(wip, wrp, key_id, new_pars, flipint);

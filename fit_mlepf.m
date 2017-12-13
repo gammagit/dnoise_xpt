@@ -1,4 +1,4 @@
-function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
+function [out_pf, out_lapse] = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
 %%% FIT_MLEPF finds the maximum likelihood estimate for the psychometric
 %%% function for a dataset containing signals and responses. The psychometric
 %%% function is given by:
@@ -33,6 +33,7 @@ function out_pf = fit_mlepf(arg_domvec, arg_sigvec, arg_respvec)
     if (opt_pars(1) > 0.1)
         error('Subject lapse errors too large');
     end
+    out_lapse = opt_pars(1); % return lapse rate - used for remapping
 
     %%% Use optimal parameters to get psychometric function on domain
     out_pf = psychf(opt_pars, arg_domvec);

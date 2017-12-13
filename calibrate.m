@@ -212,7 +212,7 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
 %     pf_quest = QuestP(weib, allx-est_mean);
 
     %%% Construct final psychometric fn based on ML est
-    pf_ml = fit_mlepf(allx, all_ints, all_resps);
+    [pf_ml, lapse] = fit_mlepf(allx, all_ints, all_resps);
     out_x = allx;
     out_ints = all_ints;
     out_resps = all_resps;
@@ -222,12 +222,15 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
 %     %%% DEBUG
 %     clear Screen
 %     %%% DEBUG
+
+    %%% Map performance levels based on lapse rate (plateau of psychometric fn)
+    new_thresh = remap_levels(lapse, arg_pars.pthresh)
     
     %%% Get final thresholds by interpolating p(thresh) from pf
 %     uniq=find(diff(pf_quest));
 %     quest_xvals = interp1(pf_quest(uniq), allx(uniq), arg_pars.pthresh(1:3));
     uniq=find(diff(pf_ml));
-    xvals = interp1(pf_ml(uniq), allx(uniq), arg_pars.pthresh(1:3));
+    xvals = interp1(pf_ml(uniq), allx(uniq), new_thresh);
     if (arg_xid == 1)
         out_xvals = sqrt(1./xvals); % convert precision back into sd
     else
@@ -255,7 +258,7 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
 %         plot(allx(uniq), pf_quest(uniq), '-.b', out_xvals, arg_pars.pthresh(1:3), 'ob',...
 %             'MarkerSize', 7);
         hold on
-        plot(allx(uniq), pf_ml(uniq), '-r', xvals, arg_pars.pthresh(1:3), 'or',...
+        plot(allx(uniq), pf_ml(uniq), '-r', xvals, new_thresh, 'or',...
             'MarkerSize', 8, 'LineWidth', 2);
 
         %%% Plot proportion of responses
@@ -283,4 +286,12 @@ function [out_xvals, out_nc, out_nic, out_x, out_ints, out_resps] =...
         xlabel(xstring);
         ylabel('p (resp=1)')
     end
+end
+
+function out_thresh = remap_levels(arg_lapse, arg_pthresh)
+    range_original = 1 - 0.5; % range in psychometric fn with no lapse
+    range_empirical = 1 - arg_lapse - 0.5;
+    prop_original = (arg_pthresh - 0.5) / range_original; % proportion of original range
+    remap_prop = prop_original * range_empirical; % proportions on remapped scale
+    out_thresh = remap_prop + 0.5; % add baseline
 end

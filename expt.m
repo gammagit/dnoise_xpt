@@ -6,6 +6,12 @@ function out_results = expt(arg_sno, arg_subname)
 %%%    try
         %%% Assign unique id to subject 
         subid = now; % Unique subject number based on current date & time
+
+        %%% Check whether setup is for lab (ViewPixx)
+        setup_lab = input('Is this lab setup [1/0] (default=1): ');
+        if (isempty(setup_lab)) % make default setup lab
+            setup_lab = 1;
+        end
         
         %%% Set type of experiment (1=vary_noise; 2=vary_signal; 3=pulse)
         %%% stype = input('Enter session type [s/n]: ', 's');
@@ -19,15 +25,16 @@ function out_results = expt(arg_sno, arg_subname)
 
         key_id = get_keyboard_id();
 %        key_id = 7;
+%        KbName('UnifyKeyNames');
 
-        [wip, wrp, oldDL, oldWL] = init_screen();
+        [wip, wrp, oldDL, oldWL] = init_screen(setup_lab);
 
         InitializePsychSound(1); % init sound drivers (for beep with stim)
 
         pars = init_params();
 
        %%% Linearize monitor
-       oldgfxlut = linearize_monitor(wip);
+       oldgfxlut = linearize_monitor(wip, setup_lab);
 
        %%% Test flip interval
        flipint = Screen('GetFlipInterval', wip, 50);
@@ -104,17 +111,19 @@ function out_results = expt(arg_sno, arg_subname)
 end
 
 
-function [wip, wrp, oldDL, oldWL] = init_screen()
+function [wip, wrp, oldDL, oldWL] = init_screen(arg_lab)
 %%% Initialises the Psychtoolbox screen, sets debug level, font, priority, etc.
 %%%
 %%% wip = window pointer
 %%% wrp = window rectangle pointer
 
         %%% For Datapixx
-       PsychImaging('PrepareConfiguration');
-       PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
-       PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
-       PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
+        if (arg_lab == 1) % Experiment being done in the lab
+            PsychImaging('PrepareConfiguration');
+            PsychImaging('AddTask', 'General', 'FloatingPoint32Bit');
+            PsychImaging('AddTask', 'General', 'EnableDataPixxM16Output');
+            PsychImaging('AddTask', 'FinalFormatting', 'DisplayColorCorrection', 'LookupTable'); % Using a CLUT
+        end
 
         oldWL = Screen('Preference', 'SuppressAllWarnings', 1);
         oldDL = Screen('Preference', 'VisualDebugLevel', 3);
@@ -125,8 +134,11 @@ function [wip, wrp, oldDL, oldWL] = init_screen()
         
         %%% For Datapixx (otherwise replace PsychImaging with Screen cmd
         oldVerbosity = Screen('Preference', 'Verbosity', 1);   % Don't log the GL stuff
-       [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
-%        [wip, wrp] = Screen('OpenWindow', whichScreen);
+        if (arg_lab == 1) % Experiment being done in the lab
+            [wip, wrp] = PsychImaging('OpenWindow', whichScreen);
+        else
+            [wip, wrp] = Screen('OpenWindow', whichScreen);
+        end
         Screen('Preference', 'Verbosity', oldVerbosity);
         
         try
@@ -174,7 +186,7 @@ function out_pars = reconfig_pars(arg_type, arg_pars, arg_xvals)
 end
 
 
-function oldgfxlut = linearize_monitor(wip)
+function oldgfxlut = linearize_monitor(wip, arg_lab)
 
         GAMMA=2.87;
         screennr=0; % use main screen
@@ -190,12 +202,15 @@ function oldgfxlut = linearize_monitor(wip)
         %clut(1:16384,1) = linspace(lmin, lmax, 16384)';
         clut = repmat(clut,1,3);
         
-        PsychColorCorrection('SetLookupTable', wip, clut); % Set up the CLUT for Psychtoolbox
-
+        if (arg_lab == 1)
+            PsychColorCorrection('SetLookupTable', wip, clut); % Set up the CLUT for Psychtoolbox
+        else
 %         clut(1:256,1) = linspace(0,1,256)';
 %         clut = clut.^ (1 / GAMMA);
 %         clut = repmat(clut,1,3);
-%         Screen('LoadNormalizedGammaTable', wip, clut);
+            Screen('LoadNormalizedGammaTable', wip, clut);
+        end
+
 end
 
 
@@ -225,9 +240,11 @@ function out_dev = get_keyboard_id()
         name_ixs = [];
         deviceString1='eyboard';%% Match any [Ky]eyboard
         deviceString2='Logitech';%% Match any [Ky]eyboard
+        deviceString3='Microsoft';%% Match any Microsoft Keyboard
         for i=1:length(name) %for each possible device
             if (~isempty(strfind(name{i},deviceString1)) ||...
-                ~isempty(strfind(name{i},deviceString2)))
+                ~isempty(strfind(name{i},deviceString2)) ||...
+                ~isempty(strfind(name{i},deviceString3)))
                 all_ixs = [all_ixs id(i)];
                 name_ixs = [name_ixs i];
             end

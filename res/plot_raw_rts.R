@@ -9,7 +9,7 @@ df_diff_crt <- NULL # Stores within-subject difference in RTs (between condition
 
 psub <- NULL # Plot handle
 # subslist <- seq(1,16) # For Exp1
-subslist <- seq(1,5) # For Exp2 pilot
+subslist <- seq(1,3) # For Exp2 pilot
 all_correct <- NULL
 all_error <- NULL
 
@@ -88,7 +88,7 @@ pall_pc <- ggplot(df_rtpc, aes(interaction(factor(condition), session), pc)) +
                          group=interaction(subid, session)),
                      alpha=0.2) +
            geom_jitter(width=0.05, aes(color=subid), alpha=0.4) +
-           xlab("Difficulty") +
+           xlab("Signal-to-noise ratio") +
            ylab("Proportion correct") +
            ylim(0.45, 1) +
            ggtitle("Proportion correct") +
@@ -111,7 +111,7 @@ pall_rt <- ggplot(df_rtpc, aes(interaction(factor(condition), session), mean_crt
                      position=pd) +
 #            geom_jitter(width=0.05, aes(color=subid), alpha=0.4) +
            geom_point(aes(color=subid), alpha=0.4, position=pd) +
-           xlab("Difficulty") +
+           xlab("Signal-to-noise ratio") +
            ylab("Mean RT (correct)") +
 #            ylim(600, 2000) +
            ggtitle("Mean correct RT") +

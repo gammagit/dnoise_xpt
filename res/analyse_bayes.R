@@ -9,7 +9,7 @@ options(mc.cores = parallel::detectCores())
 ml_analysis <- TRUE # Single or multi-level analysis
 
 session_sig <- FALSE # Session type = signal / noise
-subslist <- seq(1,5)
+subslist <- seq(1,3)
 
 mu_all <- NULL
 crt_all <- NULL

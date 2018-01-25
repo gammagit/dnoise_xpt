@@ -10,7 +10,7 @@ options(mc.cores = parallel::detectCores())
 
 session_sig <- FALSE # Session type = signal / noise
 # subslist <- seq(1,16)
-subslist <- seq(1,5)
+subslist <- seq(1,3)
 model_file <- "rtmodel_lr.stan"
 crt_all <- NULL
 nresp <- NULL
@@ -40,12 +40,15 @@ lrfit <- NULL
 newx <- seq(0,3,length.out=31)
 lrfit <- stan(file = model_file,
               data = list(NS=length(subslist), ND=3, NC=nresp, NX=31, x=newx, rt=crt_all),
-#               init = list(list(beta_mu=matrix(rep(c(1000,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE))),
-              init = list(list(beta_mu=matrix(rep(c(1000,10), 5), nrow=5, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 5), nrow=5, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 5), nrow=5, ncol=2, byrow=TRUE))),
+###               init = list(list(beta_mu=matrix(rep(c(1000,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 16), nrow=16, ncol=2, byrow=TRUE))),
+              init = list(list(beta_mu=matrix(rep(c(1000,10), 3), nrow=3, ncol=2, byrow=TRUE), beta_sigma=matrix(rep(c(100,10), 3), nrow=3, ncol=2, byrow=TRUE), beta_rate=matrix(rep(c(100,10), 3), nrow=3, ncol=2, byrow=TRUE))),
               iter = 5000,
-#                control = list(adapt_delta=0.999), # TODO: Uncomment
+###                control = list(adapt_delta=0.999), # TODO: Uncomment
               chains = 1) # TODO: Change to 3 chains - will also need to specify list of init params for each chain
 print(lrfit)
+
+### To display previous fit, uncomment following line and comment block above
+### load('lrfit_varnoise.RData')
 
 # Plot estimated parameters
 pdf(file="lr_varnoise_pilot.pdf")

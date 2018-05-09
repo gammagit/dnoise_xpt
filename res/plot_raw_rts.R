@@ -9,7 +9,7 @@ df_diff_crt <- NULL # Stores within-subject difference in RTs (between condition
 
 psub <- NULL # Plot handle
 # subslist <- seq(1,16) # For Exp1
-subslist <- seq(1,3) # For Exp2 pilot
+subslist <- seq(1,18) # For Exp2 pilot
 all_correct <- NULL
 all_error <- NULL
 

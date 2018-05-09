@@ -10,7 +10,9 @@ function [out_pars] = analyse()
 %    subnames = {'BBB', 'CCC', 'DDD', 'EEE', 'FFF', 'GGG', 'HHH', 'KKK',...
 %                'LLL', 'MMM', 'NNN', 'OOO', 'PPP', 'QQQ', 'RRR', 'SSS',...
 %                'TTT', 'UUU'};
-    subnames = {'mm_pilot', 'xx_pilot', 'ah_pilot'};
+%    subnames = {'mm_pilot', 'xx_pilot', 'ah_pilot'};
+    subnames = {'aaa','bbb','ccc','ddd','eee','fff','ggg','hhh','iii',...
+                'jjj','lll','mmm','nnn','ooo','ppp','qqq','rrr','sss'};
     sub_id = 0;
     for ix = 1:length(subnames)
         %%% Get files for both sesssions

@@ -66,6 +66,19 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
     %%% all_next_flip_times = zeros(1,100);
     %%% count_stim = 1;
     %%% DEBUG
+
+    %%% for nonstationary stimulus
+    switch_times = 0.3:0.3:10; %0.5:0.5:10; %0.3:0.3:10; % switch every 100ms
+    switch_ix = 1;
+    next_switch_time = switch_times(switch_ix);
+    if (rand > 0.5)
+        prev_template = 2;
+    else
+        prev_template = 5;
+    end
+    poss_stim_times = [0.6, 1.8]; %[0.5, 1.0, 1.5, 2.0]; %[0.3, 0.6, 0.9, 1.2];
+    rand_time_ix = randi([1, 2], 1, 1); %randi([1, 4], 1, 1);
+    arg_pars.stim_time = poss_stim_times(rand_time_ix);
     
     %%% Show the stimuli till 'Left' or 'Right' key is pressed
     next_flip_time = 0; % Initially Flip immediately
@@ -97,14 +110,31 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         end
 
         curr_time = GetSecs - tzero_trial;
-        if (curr_time >= arg_pars.stim_time && stim_displayed ~= 1) % display stimulus
+%        if (curr_time >= arg_pars.stim_time && stim_displayed ~= 1) % display stimulus
+        if (curr_time >= arg_pars.stim_time && curr_time <= (arg_pars.stim_time + arg_pars.stim_duration)) % display stimulus
             template = arg_tid;
-            isi = arg_pars.stim_duration; % don't flip till duration has passed
+%            isi = arg_pars.stim_duration; % don't flip till duration has passed
+            if (stim_displayed ~= 1)
+                switch_ix = switch_ix + 1; % skip over a switch time
+            end
             stim_displayed = 1;
-        else % display noise
+        elseif (curr_time >= (arg_pars.stim_time + arg_pars.stim_duration) && curr_time <= (arg_pars.stim_time + arg_pars.stim_duration + 0.1)) % display stimulus
             template = -1;
-            isi = arg_pars.isi;
+        elseif (curr_time >= next_switch_time)
+            if (rand > 0.5)
+                template = 2;
+            else
+                template = 5;
+            end
+            switch_ix = switch_ix + 1; % increment to next
+            next_switch_time = switch_times(switch_ix);
+%            isi = arg_pars.isi;
+        else 
+            template = prev_template;
+%            isi = arg_pars.isi;
         end
+        isi = arg_pars.isi;
+        prev_template = template;
 
         %%% Generate texture for stim
         stimtex = gen_stimtex(arg_wip, arg_wrp, blobsize, stimsize, template,...
@@ -127,7 +157,8 @@ function [out_stim, out_dt, out_dec] = trial(arg_wip, arg_wrp, arg_tid,...
         %%% DEBUG
 
         %%% Play audio for stim_duration starting stim_time
-        if (curr_time >= arg_pars.stim_time && audio_playback ~= 1)
+%        if (curr_time >= arg_pars.stim_time && audio_playback ~= 1)
+        if (curr_time > (arg_pars.stim_time + arg_pars.stim_duration) && audio_playback ~= 1)
             PsychPortAudio('Start', arg_pahandle, 1, 0, 0, GetSecs+arg_pars.stim_duration); % Start audio
             audio_playback = 1;
         end

@@ -34,7 +34,7 @@ function out_results = expt(arg_sno, arg_subname)
         pars = init_params();
 
        %%% Linearize monitor
-       oldgfxlut = linearize_monitor(wip, setup_lab);
+%       oldgfxlut = linearize_monitor(wip, setup_lab);
 
        %%% Test flip interval
        flipint = Screen('GetFlipInterval', wip, 50);

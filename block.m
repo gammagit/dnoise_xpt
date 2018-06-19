@@ -39,7 +39,14 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
     %%% At start of each block, prepare audio
     pahandle = prepare_audio();
     while (ii <= total_trials)
-        if (rand > 0.5)
+%        if (rand > 0.5)
+%            stim_id = 2;
+%        else
+%            stim_id = 5;
+%        end
+        if (rand > 0.8)
+            stim_id = 8; % catch trials
+        elseif (rand > 0.4)
             stim_id = 2;
         else
             stim_id = 5;
@@ -58,9 +65,11 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         %%% Simulate trial
         [stims, dt, dec] = trial(arg_wip, arg_wrp, stim_id, level,...
                                  arg_keyid, arg_pars, pahandle, arg_flipint);
-        if (stim_id == dec)
+        if (stim_id == dec && stim_id ~= 8)
             correct = 1;
             ctseq = [ctseq GetSecs-tzero_block];
+        elseif (stim_id == dec && stim_id == 8)
+            correct = 1; % do not include catch trials in results
         else
             correct = 0;
         end
@@ -70,7 +79,7 @@ function [out_rtseq, out_decseq, out_cicseq, out_snrseq, out_stims] =...
         iti_norwd(arg_wip, arg_wrp, stim_id, dec, dt, arg_pars);
 
         %%% If responded too quickly, then add a trial
-        if (dt >= arg_pars.mindt)
+        if (dt >= arg_pars.mindt && stim_id ~= 8)
             ii = ii + 1;
         else
             correct = -1; % too short

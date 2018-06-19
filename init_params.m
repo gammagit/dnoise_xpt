@@ -19,7 +19,9 @@ function out_pars = init_params()
 
     %%% Simple detection task
     out_pars.stim_time = 0.6; %1.0; %0.6; %0.5; % time (secs) of stim display (could be drawn from exp)
-    out_pars.stim_duration = 0.3; %0.5; %0.3; %0.100; % secs
+%    out_pars.stim_duration = 0.3; %0.5; %0.3; %0.100; % secs
+    out_pars.stim_duration = 0.5; %0.5; %0.3; %0.100; % secs
+    out_pars.cue_duration = 0.3; % duration of audio tone / visual cue
 
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame

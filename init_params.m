@@ -1,8 +1,8 @@
 function out_pars = init_params()
 
     %%% Experiment parameters
-    out_pars.nblocks = 10; % number of blocks
-    out_pars.ntrials = 60; % number of trials in block (if not fixed-time)
+    out_pars.nblocks = 20; % number of blocks
+    out_pars.ntrials = 40 % number of trials in block (if not fixed-time)
     out_pars.neg = 10; % number of example trials before RT blocks
     out_pars.pveasy = 0.10; % probability that trial will be very easy
 
@@ -19,9 +19,20 @@ function out_pars = init_params()
 
     %%% Simple detection task
     out_pars.stim_time = 0.6; %1.0; %0.6; %0.5; % time (secs) of stim display (could be drawn from exp)
-%    out_pars.stim_duration = 0.3; %0.5; %0.3; %0.100; % secs
-    out_pars.stim_duration = 0.5; %0.5; %0.3; %0.100; % secs
-    out_pars.cue_duration = 0.3; % duration of audio tone / visual cue
+    out_pars.stim_duration = 0.1; %0.5; %0.3; %0.100; % secs
+    out_pars.cue_duration = 0.1; % duration of audio tone / visual cue
+
+    %%% Nonstationary paradigm related variables
+    out_pars.pshow = [0.1, 0.2, 0.4]; % determines rate of display of pulses
+    out_pars.pswitch = 0.2; % transition probability between states 2 & 5
+    out_pars.mean_cue_ix = 20; % Average foreperiod = 20th ix (i.e. 2000ms)
+    out_pars.min_cue_ix = 3; % Avoid really short FPs (refractory period after last response)
+    out_pars.max_cue_ix = 100; % Avoid really long FPs from tail of dist
+    out_pars.stim_delta = 0.1; % 
+    out_pars.pprobe = 0.25; % Determines rate of probe trials
+    out_pars.max_rt = 3; % maximum amount of time to wait for response after cue
+%    out_pars.post_cue_minstim = 100;%5; % min stims before end of (non-probe) trials
+%    out_pars.post_cue_maxstim = 110;%15; % max number of stims shown post-cue
 
     %%% Noise parameters
     out_pars.mu = 0; % mean noise in frame
@@ -38,7 +49,7 @@ function out_pars = init_params()
     out_pars.lumax = 1;
 
     %%% Time-related parameters
-    out_pars.mindt = 0.40;
+    out_pars.mindt = 0.10;
     out_pars.isi = 0.10; %0.04;
     out_pars.iti_c = 2;
     out_pars.iti_ic = 5;

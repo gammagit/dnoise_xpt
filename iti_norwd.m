@@ -8,7 +8,10 @@ function iti(arg_wip, arg_wrp, arg_tid, arg_dec, arg_dt, arg_pars)
     Screen('DrawTexture', arg_wip, stimtex_bk);
 
     if (arg_dt < arg_pars.mindt)
-        message = ['Response was too quick!\n\nTrial will be repeated.'];
+        message = ['Too quick!!\n\nPlease make decision after tone is played.'];
+        interval = arg_pars.iti_ic - 1;
+    elseif (arg_dt > arg_pars.max_rt)
+        message = ['More than ', num2str(arg_pars.max_rt), 's elapsed after cue...\n\nRespond within ' , num2str(arg_pars.max_rt), 's of tone being played.'];
         interval = arg_pars.iti_ic - 1;
     else
         if (arg_tid == arg_dec)

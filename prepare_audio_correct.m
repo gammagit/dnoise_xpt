@@ -1,5 +1,4 @@
-%function [pahandle, myBeep] = prepare_audio()
-function pahandle = prepare_audio()
+function pahandle = prepare_audio_correct()
 
     % Number of channels and Frequency of the sound
     nrchannels = 2;
@@ -28,7 +27,4 @@ function pahandle = prepare_audio()
     % Fill the audio playback buffer with the audio data, doubled for stereo
     % presentation
     PsychPortAudio('FillBuffer', pahandle, [myBeep; myBeep]);
-%    cue_buffer = PsychPortAudio('CreateBuffer', [], [myBeep; myBeep]);
-%    PsychPortAudio('UseSchedule', pahandle, 1);
-%    PsychPortAudio('AddToSchedule', pahandle, cue_buffer, 1, 0, [], 1);
 end
